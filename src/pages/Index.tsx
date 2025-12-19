@@ -12,7 +12,7 @@ const Index = () => {
             <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-bold text-lg">Excel Transformer</h1>
+            <h1 className="font-bold text-lg">Planilha de Faturamento APS</h1>
             <p className="text-xs text-muted-foreground">Conversor de planilhas</p>
           </div>
         </div>

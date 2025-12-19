@@ -132,12 +132,16 @@ export function generateClipboardData(data: OutputRow[]): { text: string; html: 
   ).join('\n');
   const text = `${headerRow}\n${dataRows}`;
   
-  // HTML format (table for Excel/Outlook)
-  const htmlHeaderRow = headers.map(h => `<th>${h}</th>`).join('');
-  const htmlDataRows = data.map(row => 
-    `<tr>${headers.map(h => `<td>${row[h as keyof OutputRow]}</td>`).join('')}</tr>`
-  ).join('');
-  const html = `<table><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
+  // HTML format (table for Excel/Outlook with borders)
+  const cellStyle = 'border: 1px solid #000; padding: 4px 8px;';
+  const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
+  
+  const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
+  const htmlDataRows = data.map((row, idx) => {
+    const rowBg = idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;';
+    return `<tr>${headers.map(h => `<td style="${cellStyle} ${rowBg}">${row[h as keyof OutputRow]}</td>`).join('')}</tr>`;
+  }).join('');
+  const html = `<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
   
   return { text, html };
 }

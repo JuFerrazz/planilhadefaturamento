@@ -23,7 +23,7 @@ const Index = () => {
         {/* Hero Section */}
         <section className="text-center mb-12 animate-fade-in">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Automação planilha de faturamento
+            Automação Planilha de Faturamento
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
             Carregue sua planilha Excel e gere automaticamente a planilha base padronizada 

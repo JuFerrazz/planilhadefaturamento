@@ -117,7 +117,7 @@ export function processPastedData(text: string): ProcessingResult {
   }
 }
 
-export function generateClipboardData(data: OutputRow[]): { text: string; html: string } {
+export function generateClipboardData(data: OutputRow[], shipName?: string): { text: string; html: string } {
   const headers = [
     'BL nbr',
     'Name of shipper',
@@ -129,23 +129,29 @@ export function generateClipboardData(data: OutputRow[]): { text: string; html: 
     'Contato'
   ];
   
+  // Title row with ship name
+  const titleText = shipName ? `For BL invoicing '${shipName}'` : '';
+  
   // Text format (tab-separated)
   const headerRow = headers.join('\t');
   const dataRows = data.map(row => 
     headers.map(h => row[h as keyof OutputRow]).join('\t')
   ).join('\n');
-  const text = `${headerRow}\n${dataRows}`;
+  const text = titleText ? `${titleText}\n\n${headerRow}\n${dataRows}` : `${headerRow}\n${dataRows}`;
   
   // HTML format (table for Excel/Outlook with borders)
   const cellStyle = 'border: 1px solid #000; padding: 4px 8px;';
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
+  const titleStyle = 'font-family: Arial, sans-serif; font-size: 14pt; font-weight: bold; margin-bottom: 10px;';
   
   const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
   const htmlDataRows = data.map((row, idx) => {
     const rowBg = idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;';
     return `<tr>${headers.map(h => `<td style="${cellStyle} ${rowBg}">${row[h as keyof OutputRow]}</td>`).join('')}</tr>`;
   }).join('');
-  const html = `<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
+  
+  const titleHtml = shipName ? `<p style="${titleStyle}">For BL invoicing '${shipName}'</p>` : '';
+  const html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
   
   return { text, html };
 }

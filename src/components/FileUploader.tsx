@@ -108,9 +108,21 @@ export function FileUploader() {
 
   const handleCopyToClipboard = useCallback(async () => {
     if (processedData) {
-      const clipboardText = generateClipboardData(processedData);
-      await navigator.clipboard.writeText(clipboardText);
-      toast.success('Tabela copiada! Cole no Excel ou Google Sheets.');
+      const { text, html } = generateClipboardData(processedData);
+      
+      try {
+        // Use ClipboardItem API to copy both text and HTML formats
+        const clipboardItem = new ClipboardItem({
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+          'text/html': new Blob([html], { type: 'text/html' })
+        });
+        await navigator.clipboard.write([clipboardItem]);
+        toast.success('Tabela copiada! Cole no Excel, Outlook ou e-mail.');
+      } catch {
+        // Fallback to text-only copy
+        await navigator.clipboard.writeText(text);
+        toast.success('Tabela copiada!');
+      }
     }
   }, [processedData]);
 

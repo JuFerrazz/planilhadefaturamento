@@ -73,33 +73,37 @@ export function processPastedData(text: string): ProcessingResult {
       jsonData.push(row);
     }
 
-    // Count occurrences of each Name of shipper + Customs broker combination
-    const shipperBrokerCounts: Record<string, number> = {};
+    // Group by shipper + broker combination
+    const groupedData: Record<string, { blNumbers: string[]; shipper: string; cnpj: string; broker: string }> = {};
+    
     jsonData.forEach(row => {
       const shipper = String(row['Name of shipper'] || '').trim();
       const broker = String(row['Customs broker'] || '').trim();
+      const blNbr = String(row['BL nbr'] || '').trim();
+      const cnpj = String(row['CNPJ/VAT'] || '').trim();
       const key = `${shipper}|${broker}`;
+      
       if (shipper) {
-        shipperBrokerCounts[key] = (shipperBrokerCounts[key] || 0) + 1;
+        if (!groupedData[key]) {
+          groupedData[key] = { blNumbers: [], shipper, cnpj, broker };
+        }
+        groupedData[key].blNumbers.push(blNbr);
       }
     });
 
-    // Generate output data
-    const outputData: OutputRow[] = jsonData.map(row => {
-      const shipper = String(row['Name of shipper'] || '').trim();
-      const broker = String(row['Customs broker'] || '').trim();
-      const key = `${shipper}|${broker}`;
-      const qtdBLs = shipperBrokerCounts[key] || 1;
+    // Generate output data from grouped records
+    const outputData: OutputRow[] = Object.values(groupedData).map(group => {
+      const qtdBLs = group.blNumbers.length;
       const valorTotal = qtdBLs * VALOR_UNITARIO;
 
       return {
-        'BL nbr': String(row['BL nbr'] || '').trim(),
-        'Name of shipper': shipper,
-        'CNPJ/VAT': String(row['CNPJ/VAT'] || '').trim(),
+        'BL nbr': group.blNumbers.join('/'),
+        'Name of shipper': group.shipper,
+        'CNPJ/VAT': group.cnpj,
         'Qtd BLs': qtdBLs,
         'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
         'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
-        'Customs Broker': broker,
+        'Customs Broker': group.broker,
         'Contato': ''
       };
     });
@@ -198,34 +202,38 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         console.log('Data rows count:', jsonData.length);
         console.log('First normalized row:', jsonData[0]);
 
-        // Count occurrences of each Name of shipper + Customs broker combination
-        const shipperBrokerCounts: Record<string, number> = {};
+        // Group by shipper + broker combination
+        const groupedData: Record<string, { blNumbers: string[]; shipper: string; cnpj: string; broker: string }> = {};
+        
         jsonData.forEach(row => {
           const shipper = String(row['Name of shipper'] || '').trim();
           const broker = String(row['Customs broker'] || '').trim();
+          const blNbr = String(row['BL nbr'] || '').trim();
+          const cnpj = String(row['CNPJ/VAT'] || '').trim();
           const key = `${shipper}|${broker}`;
+          
           if (shipper) {
-            shipperBrokerCounts[key] = (shipperBrokerCounts[key] || 0) + 1;
+            if (!groupedData[key]) {
+              groupedData[key] = { blNumbers: [], shipper, cnpj, broker };
+            }
+            groupedData[key].blNumbers.push(blNbr);
           }
         });
-        console.log('Shipper+Broker counts:', shipperBrokerCounts);
+        console.log('Grouped data:', groupedData);
 
-        // Generate output data
-        const outputData: OutputRow[] = jsonData.map(row => {
-          const shipper = String(row['Name of shipper'] || '').trim();
-          const broker = String(row['Customs broker'] || '').trim();
-          const key = `${shipper}|${broker}`;
-          const qtdBLs = shipperBrokerCounts[key] || 1;
+        // Generate output data from grouped records
+        const outputData: OutputRow[] = Object.values(groupedData).map(group => {
+          const qtdBLs = group.blNumbers.length;
           const valorTotal = qtdBLs * VALOR_UNITARIO;
 
           return {
-            'BL nbr': String(row['BL nbr'] || '').trim(),
-            'Name of shipper': shipper,
-            'CNPJ/VAT': String(row['CNPJ/VAT'] || '').trim(),
+            'BL nbr': group.blNumbers.join('/'),
+            'Name of shipper': group.shipper,
+            'CNPJ/VAT': group.cnpj,
             'Qtd BLs': qtdBLs,
             'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
             'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
-            'Customs Broker': String(row['Customs broker'] || '').trim(),
+            'Customs Broker': group.broker,
             'Contato': ''
           };
         });

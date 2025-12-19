@@ -1,6 +1,5 @@
 import { FileSpreadsheet } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
-import { ColumnInfo } from '@/components/ColumnInfo';
 
 const Index = () => {
   return (
@@ -36,13 +35,6 @@ const Index = () => {
           <FileUploader />
         </section>
 
-        {/* Column Info Section */}
-        <section>
-          <h3 className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6">
-            Estrutura das Planilhas
-          </h3>
-          <ColumnInfo />
-        </section>
       </main>
 
       {/* Footer */}

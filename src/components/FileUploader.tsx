@@ -1,7 +1,7 @@
-import { useState, useCallback, useRef } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { processExcelFile, generateExcelDownload, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
+import { processExcelFile, generateExcelDownload, processPastedData, generateClipboardData, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
 import { toast } from 'sonner';
 
 type UploadState = 'idle' | 'dragging' | 'processing' | 'success' | 'error';
@@ -12,6 +12,19 @@ export function FileUploader() {
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processedData, setProcessedData] = useState<OutputRow[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleProcessingResult = useCallback((processingResult: ProcessingResult, sourceName: string) => {
+    setResult(processingResult);
+
+    if (processingResult.success && processingResult.data) {
+      setProcessedData(processingResult.data);
+      setState('success');
+      toast.success(`Dados processados com sucesso! ${processingResult.data.length} registros encontrados.`);
+    } else {
+      setState('error');
+      toast.error(processingResult.error || 'Erro ao processar dados');
+    }
+  }, []);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
@@ -25,17 +38,32 @@ export function FileUploader() {
     setProcessedData(null);
 
     const processingResult = await processExcelFile(file);
-    setResult(processingResult);
+    handleProcessingResult(processingResult, file.name);
+  }, [handleProcessingResult]);
 
-    if (processingResult.success && processingResult.data) {
-      setProcessedData(processingResult.data);
-      setState('success');
-      toast.success(`Planilha processada com sucesso! ${processingResult.data.length} registros encontrados.`);
-    } else {
-      setState('error');
-      toast.error(processingResult.error || 'Erro ao processar arquivo');
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    const text = e.clipboardData?.getData('text');
+    if (!text || state !== 'idle') return;
+
+    // Check if it looks like tabular data (has tabs)
+    if (!text.includes('\t')) {
+      return;
     }
-  }, []);
+
+    e.preventDefault();
+    setFileName('Dados colados');
+    setState('processing');
+    setResult(null);
+    setProcessedData(null);
+
+    const processingResult = processPastedData(text);
+    handleProcessingResult(processingResult, 'Dados colados');
+  }, [state, handleProcessingResult]);
+
+  useEffect(() => {
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [handlePaste]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -70,11 +98,21 @@ export function FileUploader() {
 
   const handleDownload = useCallback(() => {
     if (processedData) {
-      const outputFilename = fileName.replace(/\.(xlsx|xls)$/i, '_base.xlsx');
+      const outputFilename = fileName.includes('.') 
+        ? fileName.replace(/\.(xlsx|xls)$/i, '_base.xlsx')
+        : 'planilha_base.xlsx';
       generateExcelDownload(processedData, outputFilename);
       toast.success('Download iniciado!');
     }
   }, [processedData, fileName]);
+
+  const handleCopyToClipboard = useCallback(async () => {
+    if (processedData) {
+      const clipboardText = generateClipboardData(processedData);
+      await navigator.clipboard.writeText(clipboardText);
+      toast.success('Tabela copiada! Cole no Excel ou Google Sheets.');
+    }
+  }, [processedData]);
 
   const handleReset = useCallback(() => {
     setState('idle');
@@ -121,7 +159,10 @@ export function FileUploader() {
             </div>
             <h3 className="text-lg font-semibold mb-2">Arraste sua planilha aqui</h3>
             <p className="text-muted-foreground text-sm mb-4">ou clique para selecionar</p>
-            <p className="text-xs text-muted-foreground">Formatos aceitos: .xlsx, .xls</p>
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <ClipboardPaste className="w-4 h-4" />
+              <span>Você também pode colar (Ctrl+V) células copiadas do Excel</span>
+            </div>
           </div>
         )}
 
@@ -179,14 +220,20 @@ export function FileUploader() {
       </div>
 
       {(state === 'success' || state === 'error') && (
-        <div className="flex gap-3 justify-center mt-6 animate-slide-up">
+        <div className="flex gap-3 justify-center mt-6 animate-slide-up flex-wrap">
           {state === 'success' && (
-            <Button onClick={handleDownload} size="lg" className="gap-2">
-              <Download className="w-4 h-4" />
-              Baixar Planilha Base
-            </Button>
+            <>
+              <Button onClick={handleCopyToClipboard} size="lg" className="gap-2">
+                <Copy className="w-4 h-4" />
+                Copiar Tabela
+              </Button>
+              <Button onClick={handleDownload} size="lg" variant="outline" className="gap-2">
+                <Download className="w-4 h-4" />
+                Baixar Excel
+              </Button>
+            </>
           )}
-          <Button onClick={handleReset} variant="outline" size="lg" className="gap-2">
+          <Button onClick={handleReset} variant="ghost" size="lg" className="gap-2">
             <RefreshCw className="w-4 h-4" />
             {state === 'error' ? 'Tentar novamente' : 'Nova planilha'}
           </Button>

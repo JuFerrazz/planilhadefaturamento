@@ -93,20 +93,24 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         console.log('Data rows count:', jsonData.length);
         console.log('First normalized row:', jsonData[0]);
 
-        // Count occurrences of each Name of shipper
-        const shipperCounts: Record<string, number> = {};
+        // Count occurrences of each Name of shipper + Customs broker combination
+        const shipperBrokerCounts: Record<string, number> = {};
         jsonData.forEach(row => {
           const shipper = String(row['Name of shipper'] || '').trim();
+          const broker = String(row['Customs broker'] || '').trim();
+          const key = `${shipper}|${broker}`;
           if (shipper) {
-            shipperCounts[shipper] = (shipperCounts[shipper] || 0) + 1;
+            shipperBrokerCounts[key] = (shipperBrokerCounts[key] || 0) + 1;
           }
         });
-        console.log('Shipper counts:', shipperCounts);
+        console.log('Shipper+Broker counts:', shipperBrokerCounts);
 
         // Generate output data
         const outputData: OutputRow[] = jsonData.map(row => {
           const shipper = String(row['Name of shipper'] || '').trim();
-          const qtdBLs = shipperCounts[shipper] || 1;
+          const broker = String(row['Customs broker'] || '').trim();
+          const key = `${shipper}|${broker}`;
+          const qtdBLs = shipperBrokerCounts[key] || 1;
           const valorTotal = qtdBLs * VALOR_UNITARIO;
 
           return {

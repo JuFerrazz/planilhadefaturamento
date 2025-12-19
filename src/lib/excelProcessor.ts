@@ -41,6 +41,98 @@ export function validateColumns(headers: string[]): { valid: boolean; missing: s
   };
 }
 
+export function processPastedData(text: string): ProcessingResult {
+  try {
+    // Split by lines and then by tabs
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) {
+      return { success: false, error: 'Dados insuficientes. Cole pelo menos o cabeçalho e uma linha de dados.' };
+    }
+
+    // First line is headers
+    const headers = lines[0].split('\t').map(h => h.trim());
+    
+    // Validate columns
+    const validation = validateColumns(headers);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: 'Colunas obrigatórias não encontradas nos dados colados.',
+        missingColumns: validation.missing 
+      };
+    }
+
+    // Parse data rows
+    const jsonData: Record<string, any>[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split('\t');
+      const row: Record<string, any> = {};
+      headers.forEach((header, idx) => {
+        row[header] = values[idx]?.trim() || '';
+      });
+      jsonData.push(row);
+    }
+
+    // Count occurrences of each Name of shipper + Customs broker combination
+    const shipperBrokerCounts: Record<string, number> = {};
+    jsonData.forEach(row => {
+      const shipper = String(row['Name of shipper'] || '').trim();
+      const broker = String(row['Customs broker'] || '').trim();
+      const key = `${shipper}|${broker}`;
+      if (shipper) {
+        shipperBrokerCounts[key] = (shipperBrokerCounts[key] || 0) + 1;
+      }
+    });
+
+    // Generate output data
+    const outputData: OutputRow[] = jsonData.map(row => {
+      const shipper = String(row['Name of shipper'] || '').trim();
+      const broker = String(row['Customs broker'] || '').trim();
+      const key = `${shipper}|${broker}`;
+      const qtdBLs = shipperBrokerCounts[key] || 1;
+      const valorTotal = qtdBLs * VALOR_UNITARIO;
+
+      return {
+        'BL nbr': String(row['BL nbr'] || '').trim(),
+        'Name of shipper': shipper,
+        'CNPJ/VAT': String(row['CNPJ/VAT'] || '').trim(),
+        'Qtd BLs': qtdBLs,
+        'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
+        'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
+        'Customs Broker': broker,
+        'Contato': ''
+      };
+    });
+
+    return { success: true, data: outputData };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: 'Erro ao processar os dados colados. Verifique se copiou corretamente do Excel.' 
+    };
+  }
+}
+
+export function generateClipboardData(data: OutputRow[]): string {
+  const headers = [
+    'BL nbr',
+    'Name of shipper',
+    'CNPJ/VAT',
+    'Qtd BLs',
+    'Valor unitário',
+    'Valor total',
+    'Customs Broker',
+    'Contato'
+  ];
+  
+  const headerRow = headers.join('\t');
+  const dataRows = data.map(row => 
+    headers.map(h => row[h as keyof OutputRow]).join('\t')
+  ).join('\n');
+  
+  return `${headerRow}\n${dataRows}`;
+}
+
 export function processExcelFile(file: File): Promise<ProcessingResult> {
   return new Promise((resolve) => {
     const reader = new FileReader();

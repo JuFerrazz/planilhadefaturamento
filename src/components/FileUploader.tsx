@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { processExcelFile, generateExcelDownload, processPastedData, generateClipboardData, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
 import { toast } from 'sonner';
 
@@ -9,6 +11,7 @@ type UploadState = 'idle' | 'dragging' | 'processing' | 'success' | 'error';
 export function FileUploader() {
   const [state, setState] = useState<UploadState>('idle');
   const [fileName, setFileName] = useState<string>('');
+  const [shipName, setShipName] = useState<string>('');
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processedData, setProcessedData] = useState<OutputRow[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -108,7 +111,7 @@ export function FileUploader() {
 
   const handleCopyToClipboard = useCallback(async () => {
     if (processedData) {
-      const { text, html } = generateClipboardData(processedData);
+      const { text, html } = generateClipboardData(processedData, shipName);
       
       try {
         // Use ClipboardItem API to copy both text and HTML formats
@@ -124,7 +127,7 @@ export function FileUploader() {
         toast.success('Tabela copiada!');
       }
     }
-  }, [processedData]);
+  }, [processedData, shipName]);
 
   const handleReset = useCallback(() => {
     setState('idle');
@@ -148,7 +151,22 @@ export function FileUploader() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Ship Name Input */}
+      <div className="space-y-2">
+        <Label htmlFor="shipName" className="flex items-center gap-2">
+          <Ship className="w-4 h-4" />
+          Nome do Navio
+        </Label>
+        <Input
+          id="shipName"
+          type="text"
+          placeholder="Digite o nome do navio..."
+          value={shipName}
+          onChange={(e) => setShipName(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
       <div
         className={getZoneClass()}
         onDrop={handleDrop}

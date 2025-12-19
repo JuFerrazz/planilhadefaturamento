@@ -55,18 +55,28 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         const worksheet = workbook.Sheets[sheetName];
         
         // Convert to JSON as objects (using first row as headers)
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, any>[];
+        const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, any>[];
         
-        console.log('Raw JSON data:', jsonData);
+        console.log('Raw data first row:', rawData[0]);
         
-        if (jsonData.length === 0) {
+        if (rawData.length === 0) {
           resolve({ success: false, error: 'A planilha está vazia ou não contém dados suficientes.' });
           return;
         }
 
-        // Get headers from the first row's keys
-        const headers = Object.keys(jsonData[0]).map(h => String(h).trim());
-        console.log('Headers found:', headers);
+        // Normalize the data by trimming column names and values
+        const jsonData = rawData.map(row => {
+          const normalizedRow: Record<string, any> = {};
+          for (const key of Object.keys(row)) {
+            const normalizedKey = key.trim();
+            normalizedRow[normalizedKey] = row[key];
+          }
+          return normalizedRow;
+        });
+
+        // Get headers from the first row's keys (already normalized)
+        const headers = Object.keys(jsonData[0]);
+        console.log('Normalized headers:', headers);
         
         // Validate columns
         const validation = validateColumns(headers);
@@ -81,7 +91,7 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         }
 
         console.log('Data rows count:', jsonData.length);
-        console.log('First data row:', jsonData[0]);
+        console.log('First normalized row:', jsonData[0]);
 
         // Count occurrences of each Name of shipper
         const shipperCounts: Record<string, number> = {};

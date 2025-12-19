@@ -57,17 +57,21 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         // Convert to JSON
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
         
+        console.log('Raw JSON data:', jsonData);
+        
         if (jsonData.length < 2) {
           resolve({ success: false, error: 'A planilha está vazia ou não contém dados suficientes.' });
           return;
         }
 
-        // Get headers (first row)
-        const headers = jsonData[0] as string[];
+        // Get headers (first row) - normalize by trimming whitespace
+        const headers = (jsonData[0] as string[]).map(h => String(h || '').trim());
+        console.log('Headers found:', headers);
         
         // Validate columns
         const validation = validateColumns(headers);
         if (!validation.valid) {
+          console.log('Missing columns:', validation.missing);
           resolve({ 
             success: false, 
             error: 'Colunas obrigatórias não encontradas na planilha.',
@@ -83,9 +87,12 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
           cnpjVat: headers.indexOf('CNPJ/VAT'),
           customsBroker: headers.indexOf('Customs broker')
         };
+        console.log('Column indices:', colIndex);
 
         // Process data rows (skip header)
         const dataRows = jsonData.slice(1).filter(row => row.some(cell => cell !== undefined && cell !== ''));
+        console.log('Data rows count:', dataRows.length);
+        console.log('First data row:', dataRows[0]);
 
         // Count occurrences of each Name of shipper
         const shipperCounts: Record<string, number> = {};
@@ -95,6 +102,7 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
             shipperCounts[shipper] = (shipperCounts[shipper] || 0) + 1;
           }
         });
+        console.log('Shipper counts:', shipperCounts);
 
         // Generate output data
         const outputData: OutputRow[] = dataRows.map(row => {

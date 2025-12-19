@@ -54,18 +54,18 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         
-        // Convert to JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        // Convert to JSON as objects (using first row as headers)
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, any>[];
         
         console.log('Raw JSON data:', jsonData);
         
-        if (jsonData.length < 2) {
+        if (jsonData.length === 0) {
           resolve({ success: false, error: 'A planilha está vazia ou não contém dados suficientes.' });
           return;
         }
 
-        // Get headers (first row) - normalize by trimming whitespace
-        const headers = (jsonData[0] as string[]).map(h => String(h || '').trim());
+        // Get headers from the first row's keys
+        const headers = Object.keys(jsonData[0]).map(h => String(h).trim());
         console.log('Headers found:', headers);
         
         // Validate columns
@@ -80,24 +80,13 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
           return;
         }
 
-        // Get column indices
-        const colIndex = {
-          nameOfShipper: headers.indexOf('Name of shipper'),
-          blNbr: headers.indexOf('BL nbr'),
-          cnpjVat: headers.indexOf('CNPJ/VAT'),
-          customsBroker: headers.indexOf('Customs broker')
-        };
-        console.log('Column indices:', colIndex);
-
-        // Process data rows (skip header)
-        const dataRows = jsonData.slice(1).filter(row => row.some(cell => cell !== undefined && cell !== ''));
-        console.log('Data rows count:', dataRows.length);
-        console.log('First data row:', dataRows[0]);
+        console.log('Data rows count:', jsonData.length);
+        console.log('First data row:', jsonData[0]);
 
         // Count occurrences of each Name of shipper
         const shipperCounts: Record<string, number> = {};
-        dataRows.forEach(row => {
-          const shipper = String(row[colIndex.nameOfShipper] || '').trim();
+        jsonData.forEach(row => {
+          const shipper = String(row['Name of shipper'] || '').trim();
           if (shipper) {
             shipperCounts[shipper] = (shipperCounts[shipper] || 0) + 1;
           }
@@ -105,23 +94,24 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         console.log('Shipper counts:', shipperCounts);
 
         // Generate output data
-        const outputData: OutputRow[] = dataRows.map(row => {
-          const shipper = String(row[colIndex.nameOfShipper] || '').trim();
+        const outputData: OutputRow[] = jsonData.map(row => {
+          const shipper = String(row['Name of shipper'] || '').trim();
           const qtdBLs = shipperCounts[shipper] || 1;
           const valorTotal = qtdBLs * VALOR_UNITARIO;
 
           return {
-            'BL nbr': String(row[colIndex.blNbr] || '').trim(),
+            'BL nbr': String(row['BL nbr'] || '').trim(),
             'Name of shipper': shipper,
-            'CNPJ/VAT': String(row[colIndex.cnpjVat] || '').trim(),
+            'CNPJ/VAT': String(row['CNPJ/VAT'] || '').trim(),
             'Qtd BLs': qtdBLs,
             'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
             'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
-            'Customs Broker': String(row[colIndex.customsBroker] || '').trim(),
+            'Customs Broker': String(row['Customs broker'] || '').trim(),
             'Contato': ''
           };
         });
 
+        console.log('Output data:', outputData);
         resolve({ success: true, data: outputData });
       } catch (error) {
         resolve({ 

@@ -132,8 +132,20 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
 }
 
 export function generateExcelDownload(data: OutputRow[], filename: string = 'planilha_base.xlsx'): void {
-  // Create worksheet from data
-  const worksheet = XLSX.utils.json_to_sheet(data);
+  // Define explicit header order
+  const headers = [
+    'BL nbr',
+    'Name of shipper',
+    'CNPJ/VAT',
+    'Qtd BLs',
+    'Valor unitário',
+    'Valor total',
+    'Customs Broker',
+    'Contato'
+  ];
+
+  // Create worksheet from data with explicit header order
+  const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
 
   // Set column widths
   worksheet['!cols'] = [

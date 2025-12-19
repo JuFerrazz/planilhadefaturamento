@@ -113,7 +113,7 @@ export function processPastedData(text: string): ProcessingResult {
   }
 }
 
-export function generateClipboardData(data: OutputRow[]): string {
+export function generateClipboardData(data: OutputRow[]): { text: string; html: string } {
   const headers = [
     'BL nbr',
     'Name of shipper',
@@ -125,12 +125,21 @@ export function generateClipboardData(data: OutputRow[]): string {
     'Contato'
   ];
   
+  // Text format (tab-separated)
   const headerRow = headers.join('\t');
   const dataRows = data.map(row => 
     headers.map(h => row[h as keyof OutputRow]).join('\t')
   ).join('\n');
+  const text = `${headerRow}\n${dataRows}`;
   
-  return `${headerRow}\n${dataRows}`;
+  // HTML format (table for Excel/Outlook)
+  const htmlHeaderRow = headers.map(h => `<th>${h}</th>`).join('');
+  const htmlDataRows = data.map(row => 
+    `<tr>${headers.map(h => `<td>${row[h as keyof OutputRow]}</td>`).join('')}</tr>`
+  ).join('');
+  const html = `<table><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
+  
+  return { text, html };
 }
 
 export function processExcelFile(file: File): Promise<ProcessingResult> {

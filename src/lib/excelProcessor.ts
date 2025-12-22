@@ -31,8 +31,10 @@ export interface OutputRow {
   'Valor total': string;
   'Customs Broker': string;
   'Contato': string;
-  'Observações': string;
   'Não Faturar': boolean;
+  // Flags de estilo
+  '_cnpjAlterado': boolean;
+  '_destacar': boolean;
 }
 
 export function validateColumns(headers: string[]): { valid: boolean; missing: string[] } {
@@ -106,13 +108,14 @@ export function processPastedData(text: string): ProcessingResult {
         'BL nbr': group.blNumbers.join('/'),
         'Name of shipper': group.shipper,
         'CNPJ/VAT': billingInfo.cnpj,
-        'Qtd BLs': billingInfo.valorMultiplier, // Usa o multiplicador (1 se singleBLFee)
+        'Qtd BLs': billingInfo.valorMultiplier,
         'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
         'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
         'Customs Broker': group.broker,
         'Contato': billingInfo.contact,
-        'Observações': billingInfo.remarks,
         'Não Faturar': billingInfo.skipBilling,
+        '_cnpjAlterado': billingInfo.cnpjAlterado,
+        '_destacar': billingInfo.destacar,
       };
     });
 
@@ -138,8 +141,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
     'Valor unitário',
     'Valor total',
     'Customs Broker',
-    'Contato',
-    'Observações'
+    'Contato'
   ];
   
   // Title row with ship name
@@ -167,16 +169,27 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
   const titleStyle = 'font-family: Arial, sans-serif; font-size: 14pt; font-weight: bold; margin-bottom: 10px;';
   const warningStyle = 'background-color: #FFCDD2; color: #C62828;';
+  // Estilos para CNPJ alterado (negrito + vermelho)
+  const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';
+  // Estilos para linha destacada (fundo amarelo)
+  const highlightRowStyle = 'background-color: #FFFF00;';
   
   const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
   const htmlDataRows = billableData.map((row, idx) => {
-    const hasSpecialNote = row['Observações']?.includes('⚠️');
-    const rowBg = hasSpecialNote 
-      ? 'background-color: #FFF3E0;' 
+    // Se deve destacar, usa fundo amarelo
+    const rowBg = row['_destacar'] 
+      ? highlightRowStyle 
       : (idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;');
+    
     return `<tr>${headers.map(h => {
       const val = row[h as keyof OutputRow];
       const displayVal = typeof val === 'boolean' ? '' : val;
+      
+      // Se é coluna CNPJ e foi alterado, aplica estilo vermelho/negrito
+      if (h === 'CNPJ/VAT' && row['_cnpjAlterado']) {
+        return `<td style="${cellStyle} ${rowBg} ${cnpjAlteradoStyle}">${displayVal}</td>`;
+      }
+      
       return `<td style="${cellStyle} ${rowBg}">${displayVal}</td>`;
     }).join('')}</tr>`;
   }).join('');
@@ -281,8 +294,9 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
             'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
             'Customs Broker': group.broker,
             'Contato': billingInfo.contact,
-            'Observações': billingInfo.remarks,
             'Não Faturar': billingInfo.skipBilling,
+            '_cnpjAlterado': billingInfo.cnpjAlterado,
+            '_destacar': billingInfo.destacar,
           };
         });
 
@@ -309,7 +323,7 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
   const billableData = data.filter(row => !row['Não Faturar']);
   const skippedData = data.filter(row => row['Não Faturar']);
   
-  // Define explicit header order (sem a coluna "Não Faturar" que é interna)
+  // Define explicit header order (sem colunas internas)
   const headers = [
     'BL nbr',
     'Name of shipper',
@@ -318,13 +332,12 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
     'Valor unitário',
     'Valor total',
     'Customs Broker',
-    'Contato',
-    'Observações'
+    'Contato'
   ];
 
-  // Prepara dados removendo a coluna booleana
+  // Prepara dados removendo colunas internas
   const exportData = billableData.map(row => {
-    const { 'Não Faturar': _, ...rest } = row;
+    const { 'Não Faturar': _, '_cnpjAlterado': __, '_destacar': ___, ...rest } = row;
     return rest;
   });
 
@@ -341,7 +354,6 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
     { wch: 15 },  // Valor total
     { wch: 25 },  // Customs Broker
     { wch: 30 },  // Contato
-    { wch: 50 },  // Observações
   ];
 
   // Create workbook
@@ -351,7 +363,7 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
   // Se houver itens não faturáveis, adiciona em outra aba
   if (skippedData.length > 0) {
     const skippedExportData = skippedData.map(row => {
-      const { 'Não Faturar': _, ...rest } = row;
+      const { 'Não Faturar': _, '_cnpjAlterado': __, '_destacar': ___, ...rest } = row;
       return rest;
     });
     const skippedWorksheet = XLSX.utils.json_to_sheet(skippedExportData, { header: headers });

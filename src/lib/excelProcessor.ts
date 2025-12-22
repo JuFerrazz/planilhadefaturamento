@@ -176,8 +176,8 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   const warningStyle = 'background-color: #FFCDD2; color: #C62828;';
   // Estilos para CNPJ alterado (negrito + vermelho)
   const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';
-  // Estilos para linha destacada (fundo amarelo)
-  const highlightRowStyle = 'background-color: #FFFF00;';
+  // Estilos para linha destacada (fonte vermelha ao invés de fundo amarelo)
+  const highlightTextStyle = 'color: #C62828;';
   // Estilo para shipper em vermelho (preencher formulário)
   const shipperVermelhoStyle = 'font-weight: bold; color: #C62828;';
   // Estilo para valor zerado (vermelho)
@@ -185,10 +185,9 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   
   const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
   const htmlDataRows = billableData.map((row, idx) => {
-    // Se deve destacar, usa fundo amarelo
-    const rowBg = row['_destacar'] 
-      ? highlightRowStyle 
-      : (idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;');
+    const rowBg = idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;';
+    // Se deve destacar, aplica fonte vermelha em toda a linha
+    const rowTextStyle = row['_destacar'] ? highlightTextStyle : '';
     
     return `<tr>${headers.map(h => {
       const val = row[h as keyof OutputRow];
@@ -207,6 +206,11 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
       // Se é coluna Valor total e valor zerado (não paga BL fee)
       if (h === 'Valor total' && row['_valorZerado']) {
         return `<td style="${cellStyle} ${rowBg} ${valorZeradoStyle}">${displayVal}</td>`;
+      }
+      
+      // Se linha destacada, aplica fonte vermelha
+      if (rowTextStyle) {
+        return `<td style="${cellStyle} ${rowBg} ${rowTextStyle}">${displayVal}</td>`;
       }
       
       return `<td style="${cellStyle} ${rowBg}">${displayVal}</td>`;

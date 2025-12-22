@@ -151,6 +151,26 @@ export function FileUploader() {
     }
   };
 
+  const handleTextAreaPaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const text = e.clipboardData?.getData('text');
+    if (!text) return;
+
+    // Check if it looks like tabular data (has tabs)
+    if (!text.includes('\t')) {
+      toast.error('Os dados colados não parecem ser de uma planilha. Copie células do Excel com Ctrl+C.');
+      return;
+    }
+
+    e.preventDefault();
+    setFileName('Dados colados');
+    setState('processing');
+    setResult(null);
+    setProcessedData(null);
+
+    const processingResult = processPastedData(text);
+    handleProcessingResult(processingResult, 'Dados colados');
+  }, [handleProcessingResult]);
+
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Ship Name Input */}
@@ -176,87 +196,105 @@ export function FileUploader() {
           className="max-w-md"
         />
       </div>
-      <div
-        className={getZoneClass()}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onClick={state === 'idle' || state === 'dragging' ? handleClick : undefined}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleInputChange}
-          className="hidden"
-        />
 
-        {state === 'idle' && (
-          <div className="animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <Upload className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Arraste sua planilha aqui</h3>
-            <p className="text-muted-foreground text-sm mb-4">ou clique para selecionar</p>
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <ClipboardPaste className="w-4 h-4" />
-              <span>Você também pode colar (Ctrl+V) células copiadas do Excel</span>
-            </div>
-          </div>
-        )}
+      {/* Main Paste Area */}
+      {(state === 'idle' || state === 'dragging') && (
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2">
+            <ClipboardPaste className="w-4 h-4" />
+            Cole os dados da planilha aqui
+          </Label>
+          <textarea
+            className="w-full h-40 p-4 border-2 border-dashed border-primary/30 rounded-lg bg-primary/5 focus:border-primary focus:bg-primary/10 transition-colors resize-none placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            placeholder="Selecione as células no Excel e cole aqui (Ctrl+V)..."
+            onPaste={handleTextAreaPaste}
+            readOnly
+          />
+          <p className="text-xs text-muted-foreground text-center">
+            Copie as células do Excel incluindo os cabeçalhos e cole acima
+          </p>
+        </div>
+      )}
 
-        {state === 'dragging' && (
-          <div className="animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center animate-pulse-subtle">
-              <FileSpreadsheet className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-primary">Solte o arquivo aqui</h3>
+      {/* Secondary: File Upload */}
+      {(state === 'idle' || state === 'dragging') && (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
           </div>
-        )}
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">ou</span>
+          </div>
+        </div>
+      )}
 
-        {state === 'processing' && (
-          <div className="animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-accent animate-spin" />
-            </div>
-            <h3 className="text-lg font-semibold">Processando...</h3>
-            <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
+      {(state === 'idle' || state === 'dragging') && (
+        <div
+          className="p-4 border border-dashed border-muted-foreground/30 rounded-lg hover:border-muted-foreground/50 transition-colors cursor-pointer text-center"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={handleClick}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleInputChange}
+            className="hidden"
+          />
+          <div className="flex items-center justify-center gap-3 text-muted-foreground">
+            <Upload className="w-5 h-5" />
+            <span className="text-sm">Arraste um arquivo Excel ou clique para selecionar</span>
           </div>
-        )}
+        </div>
+      )}
 
-        {state === 'success' && processedData && (
-          <div className="animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-success" />
-            </div>
-            <h3 className="text-lg font-semibold text-success">Processado com sucesso!</h3>
-            <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
-            <p className="text-sm mt-1">
-              <span className="font-medium">{processedData.length}</span> registros processados
-            </p>
+      {/* Processing State */}
+      {state === 'processing' && (
+        <div className="upload-zone processing animate-fade-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-accent animate-spin" />
           </div>
-        )}
+          <h3 className="text-lg font-semibold">Processando...</h3>
+          <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
+        </div>
+      )}
 
-        {state === 'error' && (
-          <div className="animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/20 flex items-center justify-center">
-              <XCircle className="w-8 h-8 text-destructive" />
-            </div>
-            <h3 className="text-lg font-semibold text-destructive">Erro no processamento</h3>
-            <p className="text-muted-foreground text-sm mt-2">{result?.error}</p>
-            {result?.missingColumns && (
-              <div className="mt-3 p-3 bg-destructive/10 rounded-lg text-left">
-                <p className="text-xs font-medium text-destructive mb-1">Colunas não encontradas:</p>
-                <ul className="text-xs text-muted-foreground">
-                  {result.missingColumns.map(col => (
-                    <li key={col}>• {col}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+      {/* Success State */}
+      {state === 'success' && processedData && (
+        <div className="upload-zone success animate-fade-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-success" />
           </div>
-        )}
-      </div>
+          <h3 className="text-lg font-semibold text-success">Processado com sucesso!</h3>
+          <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
+          <p className="text-sm mt-1">
+            <span className="font-medium">{processedData.length}</span> registros processados
+          </p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {state === 'error' && (
+        <div className="upload-zone error animate-fade-in">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/20 flex items-center justify-center">
+            <XCircle className="w-8 h-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold text-destructive">Erro no processamento</h3>
+          <p className="text-muted-foreground text-sm mt-2">{result?.error}</p>
+          {result?.missingColumns && (
+            <div className="mt-3 p-3 bg-destructive/10 rounded-lg text-left">
+              <p className="text-xs font-medium text-destructive mb-1">Colunas não encontradas:</p>
+              <ul className="text-xs text-muted-foreground">
+                {result.missingColumns.map(col => (
+                  <li key={col}>• {col}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {(state === 'success' || state === 'error') && (
         <div className="flex gap-3 justify-center mt-6 animate-slide-up flex-wrap">

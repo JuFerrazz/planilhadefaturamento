@@ -38,10 +38,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6 mt-12">
-        <div className="container text-center text-sm text-muted-foreground">
-          Desenvolvido para automatizar processos de exportação
-        </div>
+    
       </footer>
     </div>
   );

@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { applyBillingInstruction } from './billingInstructions';
 
 // Expected column names from input file
 const REQUIRED_COLUMNS = [
@@ -30,6 +31,8 @@ export interface OutputRow {
   'Valor total': string;
   'Customs Broker': string;
   'Contato': string;
+  'Observações': string;
+  'Não Faturar': boolean;
 }
 
 export function validateColumns(headers: string[]): { valid: boolean; missing: string[] } {
@@ -91,20 +94,25 @@ export function processPastedData(text: string): ProcessingResult {
       }
     });
 
-    // Generate output data from grouped records
+    // Generate output data from grouped records with billing instructions applied
     const outputData: OutputRow[] = Object.values(groupedData).map(group => {
       const qtdBLs = group.blNumbers.length;
-      const valorTotal = qtdBLs * VALOR_UNITARIO;
+      
+      // Apply billing instructions
+      const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
+      const valorTotal = billingInfo.valorMultiplier * VALOR_UNITARIO;
 
       return {
         'BL nbr': group.blNumbers.join('/'),
         'Name of shipper': group.shipper,
-        'CNPJ/VAT': group.cnpj,
-        'Qtd BLs': qtdBLs,
+        'CNPJ/VAT': billingInfo.cnpj,
+        'Qtd BLs': billingInfo.valorMultiplier, // Usa o multiplicador (1 se singleBLFee)
         'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
         'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
         'Customs Broker': group.broker,
-        'Contato': ''
+        'Contato': billingInfo.contact,
+        'Observações': billingInfo.remarks,
+        'Não Faturar': billingInfo.skipBilling,
       };
     });
 
@@ -118,6 +126,10 @@ export function processPastedData(text: string): ProcessingResult {
 }
 
 export function generateClipboardData(data: OutputRow[], shipName?: string): { text: string; html: string } {
+  // Filtra linhas que NÃO devem ser faturadas
+  const billableData = data.filter(row => !row['Não Faturar']);
+  const skippedData = data.filter(row => row['Não Faturar']);
+  
   const headers = [
     'BL nbr',
     'Name of shipper',
@@ -126,7 +138,8 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
     'Valor unitário',
     'Valor total',
     'Customs Broker',
-    'Contato'
+    'Contato',
+    'Observações'
   ];
   
   // Title row with ship name
@@ -134,24 +147,48 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   
   // Text format (tab-separated)
   const headerRow = headers.join('\t');
-  const dataRows = data.map(row => 
-    headers.map(h => row[h as keyof OutputRow]).join('\t')
+  const dataRows = billableData.map(row => 
+    headers.map(h => {
+      const val = row[h as keyof OutputRow];
+      return typeof val === 'boolean' ? '' : val;
+    }).join('\t')
   ).join('\n');
-  const text = titleText ? `${titleText}\n\n${headerRow}\n${dataRows}` : `${headerRow}\n${dataRows}`;
+  
+  let text = titleText ? `${titleText}\n\n${headerRow}\n${dataRows}` : `${headerRow}\n${dataRows}`;
+  
+  // Add skipped items note
+  if (skippedData.length > 0) {
+    const skippedNames = skippedData.map(r => r['Name of shipper']).join(', ');
+    text += `\n\n⚠️ NÃO FATURAR: ${skippedNames}`;
+  }
   
   // HTML format (table for Excel/Outlook with borders)
   const cellStyle = 'border: 1px solid #000; padding: 4px 8px;';
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
   const titleStyle = 'font-family: Arial, sans-serif; font-size: 14pt; font-weight: bold; margin-bottom: 10px;';
+  const warningStyle = 'background-color: #FFCDD2; color: #C62828;';
   
   const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
-  const htmlDataRows = data.map((row, idx) => {
-    const rowBg = idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;';
-    return `<tr>${headers.map(h => `<td style="${cellStyle} ${rowBg}">${row[h as keyof OutputRow]}</td>`).join('')}</tr>`;
+  const htmlDataRows = billableData.map((row, idx) => {
+    const hasSpecialNote = row['Observações']?.includes('⚠️');
+    const rowBg = hasSpecialNote 
+      ? 'background-color: #FFF3E0;' 
+      : (idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;');
+    return `<tr>${headers.map(h => {
+      const val = row[h as keyof OutputRow];
+      const displayVal = typeof val === 'boolean' ? '' : val;
+      return `<td style="${cellStyle} ${rowBg}">${displayVal}</td>`;
+    }).join('')}</tr>`;
   }).join('');
   
   const titleHtml = shipName ? `<p style="${titleStyle}">For BL invoicing '${shipName}'</p>` : '';
-  const html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
+  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
+  
+  // Add skipped items warning
+  if (skippedData.length > 0) {
+    const skippedNames = skippedData.map(r => r['Name of shipper']).join(', ');
+    html += `<p style="${warningStyle} padding: 8px; margin-top: 10px; border-radius: 4px;">⚠️ <strong>NÃO FATURAR:</strong> ${skippedNames}</p>`;
+  }
   
   return { text, html };
 }
@@ -227,20 +264,25 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         });
         console.log('Grouped data:', groupedData);
 
-        // Generate output data from grouped records
+        // Generate output data from grouped records with billing instructions applied
         const outputData: OutputRow[] = Object.values(groupedData).map(group => {
           const qtdBLs = group.blNumbers.length;
-          const valorTotal = qtdBLs * VALOR_UNITARIO;
+          
+          // Apply billing instructions
+          const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
+          const valorTotal = billingInfo.valorMultiplier * VALOR_UNITARIO;
 
           return {
             'BL nbr': group.blNumbers.join('/'),
             'Name of shipper': group.shipper,
-            'CNPJ/VAT': group.cnpj,
-            'Qtd BLs': qtdBLs,
+            'CNPJ/VAT': billingInfo.cnpj,
+            'Qtd BLs': billingInfo.valorMultiplier,
             'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
             'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
             'Customs Broker': group.broker,
-            'Contato': ''
+            'Contato': billingInfo.contact,
+            'Observações': billingInfo.remarks,
+            'Não Faturar': billingInfo.skipBilling,
           };
         });
 
@@ -263,7 +305,11 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
 }
 
 export function generateExcelDownload(data: OutputRow[], filename: string = 'planilha_base.xlsx'): void {
-  // Define explicit header order
+  // Separa dados faturáveis dos não faturáveis
+  const billableData = data.filter(row => !row['Não Faturar']);
+  const skippedData = data.filter(row => row['Não Faturar']);
+  
+  // Define explicit header order (sem a coluna "Não Faturar" que é interna)
   const headers = [
     'BL nbr',
     'Name of shipper',
@@ -272,11 +318,18 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
     'Valor unitário',
     'Valor total',
     'Customs Broker',
-    'Contato'
+    'Contato',
+    'Observações'
   ];
 
+  // Prepara dados removendo a coluna booleana
+  const exportData = billableData.map(row => {
+    const { 'Não Faturar': _, ...rest } = row;
+    return rest;
+  });
+
   // Create worksheet from data with explicit header order
-  const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+  const worksheet = XLSX.utils.json_to_sheet(exportData, { header: headers });
 
   // Set column widths
   worksheet['!cols'] = [
@@ -287,12 +340,24 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
     { wch: 15 },  // Valor unitário
     { wch: 15 },  // Valor total
     { wch: 25 },  // Customs Broker
-    { wch: 20 },  // Contato
+    { wch: 30 },  // Contato
+    { wch: 50 },  // Observações
   ];
 
   // Create workbook
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha Base');
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Faturamento');
+  
+  // Se houver itens não faturáveis, adiciona em outra aba
+  if (skippedData.length > 0) {
+    const skippedExportData = skippedData.map(row => {
+      const { 'Não Faturar': _, ...rest } = row;
+      return rest;
+    });
+    const skippedWorksheet = XLSX.utils.json_to_sheet(skippedExportData, { header: headers });
+    skippedWorksheet['!cols'] = worksheet['!cols'];
+    XLSX.utils.book_append_sheet(workbook, skippedWorksheet, 'Não Faturar');
+  }
 
   // Generate and download
   XLSX.writeFile(workbook, filename);

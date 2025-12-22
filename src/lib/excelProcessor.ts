@@ -152,6 +152,13 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   // Title row with ship name
   const titleText = shipName ? `For BL invoicing '${shipName}'` : '';
   
+  // Calcular totais para texto
+  const totalBLsText = billableData.reduce((acc, row) => acc + (row['Qtd BLs'] || 0), 0);
+  const totalValorText = billableData.reduce((acc, row) => {
+    const valorStr = row['Valor total'].replace('R$ ', '').replace('.', '').replace(',', '.');
+    return acc + parseFloat(valorStr);
+  }, 0);
+  
   // Text format (tab-separated)
   const headerRow = headers.join('\t');
   const dataRows = billableData.map(row => 
@@ -161,7 +168,10 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
     }).join('\t')
   ).join('\n');
   
-  let text = titleText ? `${titleText}\n\n${headerRow}\n${dataRows}` : `${headerRow}\n${dataRows}`;
+  // Linha de total em texto
+  const totalRow = `\t TOTAL\t\t${totalBLsText}\t\tR$ ${totalValorText.toFixed(2).replace('.', ',')}\t\t`;
+  
+  let text = titleText ? `${titleText}\n\n${headerRow}\n${dataRows}\n${totalRow}` : `${headerRow}\n${dataRows}\n${totalRow}`;
   
   // Add skipped items note
   if (skippedData.length > 0) {
@@ -182,6 +192,13 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   const shipperVermelhoStyle = 'font-weight: bold; color: #C62828;';
   // Estilo para valor zerado (vermelho)
   const valorZeradoStyle = 'font-weight: bold; color: #C62828;';
+  
+  // Calcular totais
+  const totalBLs = billableData.reduce((acc, row) => acc + (row['Qtd BLs'] || 0), 0);
+  const totalValor = billableData.reduce((acc, row) => {
+    const valorStr = row['Valor total'].replace('R$ ', '').replace('.', '').replace(',', '.');
+    return acc + parseFloat(valorStr);
+  }, 0);
   
   const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
   const htmlDataRows = billableData.map((row, idx) => {
@@ -217,8 +234,21 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
     }).join('')}</tr>`;
   }).join('');
   
+  // Linha de totais
+  const totalRowStyle = 'background-color: #D9EAD3; font-weight: bold;';
+  const htmlTotalRow = `<tr>
+    <td style="${cellStyle} ${totalRowStyle}"></td>
+    <td style="${cellStyle} ${totalRowStyle}">TOTAL</td>
+    <td style="${cellStyle} ${totalRowStyle}"></td>
+    <td style="${cellStyle} ${totalRowStyle}">${totalBLs}</td>
+    <td style="${cellStyle} ${totalRowStyle}"></td>
+    <td style="${cellStyle} ${totalRowStyle}">R$ ${totalValor.toFixed(2).replace('.', ',')}</td>
+    <td style="${cellStyle} ${totalRowStyle}"></td>
+    <td style="${cellStyle} ${totalRowStyle}"></td>
+  </tr>`;
+  
   const titleHtml = shipName ? `<p style="${titleStyle}">For BL invoicing '${shipName}'</p>` : '';
-  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}</tbody></table>`;
+  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}${htmlTotalRow}</tbody></table>`;
   
   // Add skipped items warning
   if (skippedData.length > 0) {

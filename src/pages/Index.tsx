@@ -25,7 +25,8 @@ const Index = () => {
             Automação Planilha de Faturamento
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Carregue sua planilha Excel e gere automaticamente a Planilha de Faturamento APS padronizada.
+            Carregue sua planilha Excel e gere automaticamente a
+            Planilha de Faturamento APS padronizada.
           </p>
         </section>
 

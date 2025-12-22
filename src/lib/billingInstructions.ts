@@ -182,10 +182,11 @@ export function applyBillingInstruction(
 ): {
   cnpj: string;
   contact: string;
-  remarks: string;
   skipBilling: boolean;
   valorMultiplier: number;
   companyName?: string;
+  cnpjAlterado: boolean;
+  destacar: boolean;
 } {
   const instruction = findBillingInstruction(shipper);
   
@@ -193,9 +194,10 @@ export function applyBillingInstruction(
     return {
       cnpj: originalCNPJ,
       contact: '',
-      remarks: '',
       skipBilling: false,
       valorMultiplier: qtdBLs,
+      cnpjAlterado: false,
+      destacar: false,
     };
   }
 
@@ -209,18 +211,19 @@ export function applyBillingInstruction(
     }
   }
 
-  // Monta as observações
-  let remarks = instruction.remarks || '';
-  if (instruction.specialNote) {
-    remarks = instruction.specialNote + (remarks ? ' - ' + remarks : '');
-  }
+  // Verifica se CNPJ foi alterado
+  const cnpjAlterado = !!instruction.overrideCNPJ;
+  
+  // Verifica se deve destacar (specialNote com vermelho)
+  const destacar = instruction.specialNote?.includes('VERMELHO') || false;
 
   return {
     cnpj: instruction.overrideCNPJ || originalCNPJ,
     contact,
-    remarks,
     skipBilling: instruction.skipBilling || false,
     valorMultiplier: instruction.singleBLFee ? 1 : qtdBLs,
     companyName: instruction.overrideCompanyName,
+    cnpjAlterado,
+    destacar,
   };
 }

@@ -145,8 +145,8 @@ export const BILLING_INSTRUCTIONS: BillingInstruction[] = [
   {
     shipper: 'BTG PACTUAL COMMODITIES SERTRADING S.A.',
     aliases: ['BTG PACTUAL', 'BTG', 'SERTRADING'],
-    remarks: 'NÃO FATURAR, ESTE EXPORTADOR NÃO PAGA BL FEE. (04.626.426/0001-06)',
-    skipBilling: true,
+    remarks: 'NÃO PAGA BL FEE. (04.626.426/0001-06)',
+    skipBilling: false, // Aparece na planilha mas com valor zerado
   },
 ];
 
@@ -224,7 +224,7 @@ export function applyBillingInstruction(
   // Verifica se nome do shipper deve ser vermelho (preencher formulário)
   const shipperVermelho = instruction.remarks?.includes('PREENCHER O FORMULARIO') || false;
   
-  // Verifica se não paga BL fee (valor zerado)
+  // Verifica se não paga BL fee (valor zerado) - mas pode aparecer na planilha
   const valorZerado = instruction.remarks?.includes('NÃO PAGA BL FEE') || false;
 
   return {

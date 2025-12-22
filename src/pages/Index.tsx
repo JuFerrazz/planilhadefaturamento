@@ -12,7 +12,7 @@ const Index = () => {
           </div>
           <div>
             <h1 className="font-bold text-lg">Planilha de Faturamento APS</h1>
-            <p className="text-xs text-muted-foreground">Conversor de planilhas</p>
+            <p className="text-xs text-muted-foreground">Conversor de planilha APS</p>
           </div>
         </div>
       </header>

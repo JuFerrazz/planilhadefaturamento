@@ -111,7 +111,7 @@ export function processPastedData(text: string): ProcessingResult {
         'BL nbr': group.blNumbers.join('/'),
         'Name of shipper': group.shipper,
         'CNPJ/VAT': billingInfo.cnpj,
-        'Qtd BLs': billingInfo.valorMultiplier,
+        'Qtd BLs': qtdBLs, // Quantidade real de BLs
         'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
         'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
         'Customs Broker': group.broker,
@@ -313,7 +313,7 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
             'BL nbr': group.blNumbers.join('/'),
             'Name of shipper': group.shipper,
             'CNPJ/VAT': billingInfo.cnpj,
-            'Qtd BLs': billingInfo.valorMultiplier,
+            'Qtd BLs': qtdBLs, // Quantidade real de BLs
             'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
             'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
             'Customs Broker': group.broker,

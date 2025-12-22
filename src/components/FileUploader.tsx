@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2 } from 'lucide-react';
+import { Upload, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ export function FileUploader() {
   const [shipName, setShipName] = useState<string>('');
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processedData, setProcessedData] = useState<OutputRow[] | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleProcessingResult = useCallback((processingResult: ProcessingResult, sourceName: string) => {
@@ -48,7 +49,6 @@ export function FileUploader() {
     const text = e.clipboardData?.getData('text');
     if (!text || state !== 'idle') return;
 
-    // Check if it looks like tabular data (has tabs)
     if (!text.includes('\t')) {
       return;
     }
@@ -114,7 +114,6 @@ export function FileUploader() {
       const { text, html } = generateClipboardData(processedData, shipName);
       
       try {
-        // Use ClipboardItem API to copy both text and HTML formats
         const clipboardItem = new ClipboardItem({
           'text/plain': new Blob([text], { type: 'text/plain' }),
           'text/html': new Blob([html], { type: 'text/html' })
@@ -122,7 +121,6 @@ export function FileUploader() {
         await navigator.clipboard.write([clipboardItem]);
         toast.success('Tabela copiada! Cole no Excel, Outlook ou e-mail.');
       } catch {
-        // Fallback to text-only copy
         await navigator.clipboard.writeText(text);
         toast.success('Tabela copiada!');
       }
@@ -140,22 +138,10 @@ export function FileUploader() {
     }
   }, []);
 
-  const getZoneClass = () => {
-    const base = 'upload-zone';
-    switch (state) {
-      case 'dragging': return `${base} dragging`;
-      case 'processing': return `${base} processing`;
-      case 'success': return `${base} success`;
-      case 'error': return `${base} error`;
-      default: return base;
-    }
-  };
-
   const handleTextAreaPaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const text = e.clipboardData?.getData('text');
     if (!text) return;
 
-    // Check if it looks like tabular data (has tabs)
     if (!text.includes('\t')) {
       toast.error('Os dados colados não parecem ser de uma planilha. Copie células do Excel com Ctrl+C.');
       return;
@@ -172,150 +158,197 @@ export function FileUploader() {
   }, [handleProcessingResult]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
-      {/* Ship Name Input */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="shipName" className="flex items-center gap-2">
-            <Ship className="w-4 h-4" />
-            Nome do Navio
-          </Label>
-          {(shipName || state === 'success' || state === 'error') && (
-            <Button onClick={handleReset} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-destructive">
-              <Trash2 className="w-4 h-4" />
-              Limpar
-            </Button>
+    <div className="w-full max-w-2xl mx-auto">
+      {/* Card Container */}
+      <div className="bg-card rounded-2xl shadow-lg border border-border/50 overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Ship className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <Label htmlFor="shipName" className="text-sm font-medium text-foreground">
+                  Nome do Navio
+                </Label>
+                <p className="text-xs text-muted-foreground">Identificação para o relatório</p>
+              </div>
+            </div>
+            {(shipName || state === 'success' || state === 'error') && (
+              <Button 
+                onClick={handleReset} 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="w-4 h-4" />
+                Limpar
+              </Button>
+            )}
+          </div>
+          <Input
+            id="shipName"
+            type="text"
+            placeholder="Ex: MV Atlantic Star"
+            value={shipName}
+            onChange={(e) => setShipName(e.target.value)}
+            className="mt-4 bg-background/80 border-border/50 focus:bg-background"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-5">
+          {/* Main Paste Area */}
+          {(state === 'idle' || state === 'dragging') && (
+            <>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <ClipboardPaste className="w-4 h-4 text-primary" />
+                  <span>Colar dados da planilha</span>
+                  <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">Ctrl+V</span>
+                </div>
+                <div className="relative group">
+                  <textarea
+                    className={`
+                      w-full h-36 p-4 rounded-xl resize-none
+                      bg-gradient-to-br from-primary/5 to-primary/10
+                      border-2 transition-all duration-300
+                      placeholder:text-muted-foreground/50
+                      focus:outline-none
+                      ${isFocused 
+                        ? 'border-primary shadow-lg shadow-primary/10 bg-gradient-to-br from-primary/10 to-primary/15' 
+                        : 'border-primary/20 hover:border-primary/40'
+                      }
+                    `}
+                    placeholder="Clique aqui e cole os dados (Ctrl+V)..."
+                    onPaste={handleTextAreaPaste}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    readOnly
+                  />
+                  {isFocused && (
+                    <div className="absolute inset-0 rounded-xl pointer-events-none animate-pulse-subtle">
+                      <div className="absolute inset-0 rounded-xl border-2 border-primary/30" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-3 h-3" />
+                  Copie as células do Excel incluindo os cabeçalhos
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/50" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-card px-3 text-xs text-muted-foreground uppercase tracking-wider">ou</span>
+                </div>
+              </div>
+
+              {/* File Upload */}
+              <div
+                className="group p-4 border border-dashed border-muted-foreground/20 rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={handleClick}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleInputChange}
+                  className="hidden"
+                />
+                <div className="flex items-center justify-center gap-3 text-muted-foreground group-hover:text-foreground transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                    <Upload className="w-4 h-4 group-hover:text-primary transition-colors" />
+                  </div>
+                  <span className="text-sm">Arraste um arquivo ou clique para selecionar</span>
+                </div>
+              </div>
+            </>
           )}
-        </div>
-        <Input
-          id="shipName"
-          type="text"
-          placeholder="Digite o nome do navio..."
-          value={shipName}
-          onChange={(e) => setShipName(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
 
-      {/* Main Paste Area */}
-      {(state === 'idle' || state === 'dragging') && (
-        <div className="space-y-3">
-          <Label className="flex items-center gap-2">
-            <ClipboardPaste className="w-4 h-4" />
-            Cole os dados da planilha aqui
-          </Label>
-          <textarea
-            className="w-full h-40 p-4 border-2 border-dashed border-primary/30 rounded-lg bg-primary/5 focus:border-primary focus:bg-primary/10 transition-colors resize-none placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
-            placeholder="Selecione as células no Excel e cole aqui (Ctrl+V)..."
-            onPaste={handleTextAreaPaste}
-            readOnly
-          />
-          <p className="text-xs text-muted-foreground text-center">
-            Copie as células do Excel incluindo os cabeçalhos e cole acima
-          </p>
-        </div>
-      )}
+          {/* Processing State */}
+          {state === 'processing' && (
+            <div className="py-12 text-center animate-fade-in">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              </div>
+              <h3 className="text-lg font-semibold">Processando...</h3>
+              <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
+            </div>
+          )}
 
-      {/* Secondary: File Upload */}
-      {(state === 'idle' || state === 'dragging') && (
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">ou</span>
-          </div>
-        </div>
-      )}
+          {/* Success State */}
+          {state === 'success' && processedData && (
+            <div className="py-8 text-center animate-fade-in">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-success/20 to-success/10 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-success" />
+              </div>
+              <h3 className="text-lg font-semibold text-success">Processado com sucesso!</h3>
+              <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
+              <div className="mt-3 inline-flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full text-sm font-medium">
+                <Sparkles className="w-4 h-4" />
+                {processedData.length} registros processados
+              </div>
+            </div>
+          )}
 
-      {(state === 'idle' || state === 'dragging') && (
-        <div
-          className="p-4 border border-dashed border-muted-foreground/30 rounded-lg hover:border-muted-foreground/50 transition-colors cursor-pointer text-center"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={handleClick}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleInputChange}
-            className="hidden"
-          />
-          <div className="flex items-center justify-center gap-3 text-muted-foreground">
-            <Upload className="w-5 h-5" />
-            <span className="text-sm">Arraste um arquivo Excel ou clique para selecionar</span>
-          </div>
-        </div>
-      )}
-
-      {/* Processing State */}
-      {state === 'processing' && (
-        <div className="upload-zone processing animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/20 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-accent animate-spin" />
-          </div>
-          <h3 className="text-lg font-semibold">Processando...</h3>
-          <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
-        </div>
-      )}
-
-      {/* Success State */}
-      {state === 'success' && processedData && (
-        <div className="upload-zone success animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/20 flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8 text-success" />
-          </div>
-          <h3 className="text-lg font-semibold text-success">Processado com sucesso!</h3>
-          <p className="text-muted-foreground text-sm mt-2">{fileName}</p>
-          <p className="text-sm mt-1">
-            <span className="font-medium">{processedData.length}</span> registros processados
-          </p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {state === 'error' && (
-        <div className="upload-zone error animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/20 flex items-center justify-center">
-            <XCircle className="w-8 h-8 text-destructive" />
-          </div>
-          <h3 className="text-lg font-semibold text-destructive">Erro no processamento</h3>
-          <p className="text-muted-foreground text-sm mt-2">{result?.error}</p>
-          {result?.missingColumns && (
-            <div className="mt-3 p-3 bg-destructive/10 rounded-lg text-left">
-              <p className="text-xs font-medium text-destructive mb-1">Colunas não encontradas:</p>
-              <ul className="text-xs text-muted-foreground">
-                {result.missingColumns.map(col => (
-                  <li key={col}>• {col}</li>
-                ))}
-              </ul>
+          {/* Error State */}
+          {state === 'error' && (
+            <div className="py-8 text-center animate-fade-in">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-destructive/20 to-destructive/10 flex items-center justify-center">
+                <XCircle className="w-8 h-8 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold text-destructive">Erro no processamento</h3>
+              <p className="text-muted-foreground text-sm mt-2">{result?.error}</p>
+              {result?.missingColumns && (
+                <div className="mt-4 p-4 bg-destructive/5 border border-destructive/20 rounded-xl text-left max-w-sm mx-auto">
+                  <p className="text-xs font-medium text-destructive mb-2">Colunas não encontradas:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    {result.missingColumns.map(col => (
+                      <li key={col} className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-destructive" />
+                        {col}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
 
-      {(state === 'success' || state === 'error') && (
-        <div className="flex gap-3 justify-center mt-6 animate-slide-up flex-wrap">
-          {state === 'success' && (
-            <>
-              <Button onClick={handleCopyToClipboard} size="lg" className="gap-2">
-                <Copy className="w-4 h-4" />
-                Copiar Tabela
+        {/* Action Buttons */}
+        {(state === 'success' || state === 'error') && (
+          <div className="p-6 pt-0">
+            <div className="flex gap-3 justify-center flex-wrap animate-slide-up">
+              {state === 'success' && (
+                <>
+                  <Button onClick={handleCopyToClipboard} size="lg" className="gap-2 shadow-lg shadow-primary/20">
+                    <Copy className="w-4 h-4" />
+                    Copiar Tabela
+                  </Button>
+                  <Button onClick={handleDownload} size="lg" variant="outline" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Baixar Excel
+                  </Button>
+                </>
+              )}
+              <Button onClick={handleReset} variant="ghost" size="lg" className="gap-2">
+                <RefreshCw className="w-4 h-4" />
+                {state === 'error' ? 'Tentar novamente' : 'Nova planilha'}
               </Button>
-              <Button onClick={handleDownload} size="lg" variant="outline" className="gap-2">
-                <Download className="w-4 h-4" />
-                Baixar Excel
-              </Button>
-            </>
-          )}
-          <Button onClick={handleReset} variant="ghost" size="lg" className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            {state === 'error' ? 'Tentar novamente' : 'Nova planilha'}
-          </Button>
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -132,6 +132,7 @@ export function FileUploader() {
   const handleReset = useCallback(() => {
     setState('idle');
     setFileName('');
+    setShipName('');
     setResult(null);
     setProcessedData(null);
     if (fileInputRef.current) {
@@ -154,10 +155,18 @@ export function FileUploader() {
     <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Ship Name Input */}
       <div className="space-y-2">
-        <Label htmlFor="shipName" className="flex items-center gap-2">
-          <Ship className="w-4 h-4" />
-          Nome do Navio
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="shipName" className="flex items-center gap-2">
+            <Ship className="w-4 h-4" />
+            Nome do Navio
+          </Label>
+          {(shipName || state === 'success' || state === 'error') && (
+            <Button onClick={handleReset} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-destructive">
+              <Trash2 className="w-4 h-4" />
+              Limpar
+            </Button>
+          )}
+        </div>
         <Input
           id="shipName"
           type="text"

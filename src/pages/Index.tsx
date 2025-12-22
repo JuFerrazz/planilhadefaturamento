@@ -37,11 +37,9 @@ const Index = () => {
 
       </main>
 
-      {/* Footer */}
-    
-      </footer>
     </div>
   );
 };
+
 
 export default Index;

@@ -187,6 +187,8 @@ export function applyBillingInstruction(
   companyName?: string;
   cnpjAlterado: boolean;
   destacar: boolean;
+  shipperVermelho: boolean; // Nome do shipper em vermelho (preencher formulário)
+  valorZerado: boolean; // Valor total zerado (não paga BL fee)
 } {
   const instruction = findBillingInstruction(shipper);
   
@@ -198,6 +200,8 @@ export function applyBillingInstruction(
       valorMultiplier: qtdBLs,
       cnpjAlterado: false,
       destacar: false,
+      shipperVermelho: false,
+      valorZerado: false,
     };
   }
 
@@ -216,6 +220,12 @@ export function applyBillingInstruction(
   
   // Verifica se deve destacar (specialNote com vermelho)
   const destacar = instruction.specialNote?.includes('VERMELHO') || false;
+  
+  // Verifica se nome do shipper deve ser vermelho (preencher formulário)
+  const shipperVermelho = instruction.remarks?.includes('PREENCHER O FORMULARIO') || false;
+  
+  // Verifica se não paga BL fee (valor zerado)
+  const valorZerado = instruction.remarks?.includes('NÃO PAGA BL FEE') || false;
 
   return {
     cnpj: instruction.overrideCNPJ || originalCNPJ,
@@ -225,5 +235,7 @@ export function applyBillingInstruction(
     companyName: instruction.overrideCompanyName,
     cnpjAlterado,
     destacar,
+    shipperVermelho,
+    valorZerado,
   };
 }

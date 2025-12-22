@@ -35,6 +35,8 @@ export interface OutputRow {
   // Flags de estilo
   '_cnpjAlterado': boolean;
   '_destacar': boolean;
+  '_shipperVermelho': boolean; // Nome do shipper em vermelho
+  '_valorZerado': boolean; // Valor total zerado
 }
 
 export function validateColumns(headers: string[]): { valid: boolean; missing: string[] } {
@@ -102,7 +104,8 @@ export function processPastedData(text: string): ProcessingResult {
       
       // Apply billing instructions
       const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
-      const valorTotal = billingInfo.valorMultiplier * VALOR_UNITARIO;
+      // Se valorZerado, o total é 0
+      const valorTotal = billingInfo.valorZerado ? 0 : billingInfo.valorMultiplier * VALOR_UNITARIO;
 
       return {
         'BL nbr': group.blNumbers.join('/'),
@@ -116,6 +119,8 @@ export function processPastedData(text: string): ProcessingResult {
         'Não Faturar': billingInfo.skipBilling,
         '_cnpjAlterado': billingInfo.cnpjAlterado,
         '_destacar': billingInfo.destacar,
+        '_shipperVermelho': billingInfo.shipperVermelho,
+        '_valorZerado': billingInfo.valorZerado,
       };
     });
 
@@ -173,6 +178,10 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';
   // Estilos para linha destacada (fundo amarelo)
   const highlightRowStyle = 'background-color: #FFFF00;';
+  // Estilo para shipper em vermelho (preencher formulário)
+  const shipperVermelhoStyle = 'font-weight: bold; color: #C62828;';
+  // Estilo para valor zerado (vermelho)
+  const valorZeradoStyle = 'font-weight: bold; color: #C62828;';
   
   const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
   const htmlDataRows = billableData.map((row, idx) => {
@@ -188,6 +197,16 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
       // Se é coluna CNPJ e foi alterado, aplica estilo vermelho/negrito
       if (h === 'CNPJ/VAT' && row['_cnpjAlterado']) {
         return `<td style="${cellStyle} ${rowBg} ${cnpjAlteradoStyle}">${displayVal}</td>`;
+      }
+      
+      // Se é coluna Name of shipper e deve ser vermelho (preencher formulário)
+      if (h === 'Name of shipper' && row['_shipperVermelho']) {
+        return `<td style="${cellStyle} ${rowBg} ${shipperVermelhoStyle}">${displayVal}</td>`;
+      }
+      
+      // Se é coluna Valor total e valor zerado (não paga BL fee)
+      if (h === 'Valor total' && row['_valorZerado']) {
+        return `<td style="${cellStyle} ${rowBg} ${valorZeradoStyle}">${displayVal}</td>`;
       }
       
       return `<td style="${cellStyle} ${rowBg}">${displayVal}</td>`;
@@ -283,7 +302,8 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
           
           // Apply billing instructions
           const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
-          const valorTotal = billingInfo.valorMultiplier * VALOR_UNITARIO;
+          // Se valorZerado, o total é 0
+          const valorTotal = billingInfo.valorZerado ? 0 : billingInfo.valorMultiplier * VALOR_UNITARIO;
 
           return {
             'BL nbr': group.blNumbers.join('/'),
@@ -297,6 +317,8 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
             'Não Faturar': billingInfo.skipBilling,
             '_cnpjAlterado': billingInfo.cnpjAlterado,
             '_destacar': billingInfo.destacar,
+            '_shipperVermelho': billingInfo.shipperVermelho,
+            '_valorZerado': billingInfo.valorZerado,
           };
         });
 
@@ -337,7 +359,7 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
 
   // Prepara dados removendo colunas internas
   const exportData = billableData.map(row => {
-    const { 'Não Faturar': _, '_cnpjAlterado': __, '_destacar': ___, ...rest } = row;
+    const { 'Não Faturar': _, '_cnpjAlterado': __, '_destacar': ___, '_shipperVermelho': ____, '_valorZerado': _____, ...rest } = row;
     return rest;
   });
 
@@ -363,7 +385,7 @@ export function generateExcelDownload(data: OutputRow[], filename: string = 'pla
   // Se houver itens não faturáveis, adiciona em outra aba
   if (skippedData.length > 0) {
     const skippedExportData = skippedData.map(row => {
-      const { 'Não Faturar': _, '_cnpjAlterado': __, '_destacar': ___, ...rest } = row;
+      const { 'Não Faturar': _, '_cnpjAlterado': __, '_destacar': ___, '_shipperVermelho': ____, '_valorZerado': _____, ...rest } = row;
       return rest;
     });
     const skippedWorksheet = XLSX.utils.json_to_sheet(skippedExportData, { header: headers });

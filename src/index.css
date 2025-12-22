@@ -87,24 +87,19 @@
 
 @layer components {
   .upload-zone {
-    @apply relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer;
-    @apply border-border bg-card hover:border-primary/50 hover:bg-primary/5;
-  }
-
-  .upload-zone.dragging {
-    @apply border-primary bg-primary/10 scale-[1.02];
+    @apply relative rounded-xl p-8 text-center transition-all duration-300;
   }
 
   .upload-zone.processing {
-    @apply border-accent bg-accent/10;
+    @apply bg-primary/5;
   }
 
   .upload-zone.success {
-    @apply border-success bg-success/10;
+    @apply bg-success/5;
   }
 
   .upload-zone.error {
-    @apply border-destructive bg-destructive/10;
+    @apply bg-destructive/5;
   }
 }
 
@@ -149,12 +144,4 @@
       opacity: 0.7;
     }
   }
-}
-a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovable"], .lovable-badge {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  z-index: -9999 !important;
 }

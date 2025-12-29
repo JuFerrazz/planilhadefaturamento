@@ -14,9 +14,13 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
     ? formatDate(data.issueDate)
     : 'DECEMBER XXth, 2025';
 
-  // Format gross weight display - first line is half value, second is full with MT
-  const grossWeightHalf = data.grossWeight !== null ? Math.round(data.grossWeight / 2).toLocaleString('en-US').replace(/,/g, ',') : '';
-  const grossWeightFull = data.grossWeight !== null ? formatWeight(data.grossWeight) : '';
+  // Format gross weight display
+  const grossWeightHalf = data.grossWeight !== null 
+    ? (data.grossWeight / 2).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).replace(/,/g, '.')
+    : '';
+  const grossWeightFull = data.grossWeight !== null 
+    ? data.grossWeight.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).replace(/,/g, '.')
+    : '';
 
   return (
     <div className="space-y-4">
@@ -36,238 +40,247 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
       {/* BL Document - Exact replica of CONGENBILL */}
       <div 
         id="bl-document" 
-        className="bg-white text-black print:border-0 print:p-0 mx-auto"
+        className="bg-white text-blue-800 print:border-0 print:p-0 mx-auto"
         style={{ 
           fontFamily: 'Arial, sans-serif', 
           fontSize: '10px', 
-          lineHeight: '1.3',
+          lineHeight: '1.2',
           width: '210mm',
           minHeight: '297mm',
-          padding: '10mm'
+          padding: '8mm',
+          color: '#000080'
         }}
       >
-        {/* Main Table Structure */}
-        <table className="w-full border-collapse" style={{ border: '2px solid black' }}>
-          <tbody>
-            {/* Row 1: CODE NAME Header */}
-            <tr>
-              <td 
-                colSpan={9} 
-                className="text-center font-bold border-b-2 border-black p-1"
-                style={{ fontSize: '11px' }}
-              >
-                CODE NAME: "CONGENBILL" EDITION 1994
-              </td>
-            </tr>
+        {/* Main container with outer border */}
+        <div style={{ border: '2px solid #000080' }}>
+          
+          {/* CODE NAME Header */}
+          <div style={{ fontSize: '9px', padding: '2px 4px', fontWeight: 'bold' }}>
+            CODE NAME: "CONGENBILL" EDITION 1994
+          </div>
 
-            {/* Row 2: Shipper Label + BILL OF LADING + B/L No. */}
-            <tr>
-              <td 
-                rowSpan={5} 
-                className="border-r-2 border-black align-top"
-                style={{ width: '55%' }}
-              >
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Shipper</div>
-                <div className="p-2">
-                  <div className="font-bold">{data.shipperName || '[SHIPPER NAME]'}</div>
-                  <div>CNPJ {data.shipperCnpj || '[CNPJ]'}</div>
-                </div>
-              </td>
-              <td 
-                colSpan={7} 
-                className="border-b border-black text-center font-bold p-1"
-                style={{ fontSize: '12px' }}
-              >
+          {/* HORIZONTAL LINE - half width */}
+          <div style={{ borderBottom: '1px solid #000080', width: '50%' }} />
+
+          {/* Row: Shipper | BILL OF LADING | B/L No. */}
+          <div style={{ display: 'flex' }}>
+            {/* Left: Shipper */}
+            <div style={{ width: '50%' }}>
+              <div style={{ fontSize: '8px', padding: '1px 4px' }}>Shipper</div>
+              <div style={{ padding: '2px 4px', fontWeight: 'bold' }}>
+                {data.shipperName || '[SHIPPER NAME]'}
+              </div>
+              <div style={{ padding: '2px 4px' }}>
+                CNPJ {data.shipperCnpj || '[CNPJ]'}
+              </div>
+            </div>
+            {/* Center: BILL OF LADING */}
+            <div style={{ width: '30%', textAlign: 'center' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '14px', paddingTop: '4px' }}>
                 BILL OF LADING
-              </td>
-              <td 
-                className="border-l-2 border-b border-black p-1 font-bold"
-                style={{ width: '15%' }}
-              >
-                B/L No. {data.blNumber || '1'}
-              </td>
-            </tr>
-
-            {/* Row 3: TO BE USED WITH CHARTER-PARTIES */}
-            <tr>
-              <td 
-                colSpan={7} 
-                className="border-b-2 border-black text-center p-1"
-                style={{ fontSize: '9px' }}
-              >
+              </div>
+              <div style={{ fontSize: '8px' }}>
                 TO BE USED WITH CHARTER-PARTIES
-              </td>
-              <td className="border-l-2 border-b-2 border-black" />
-            </tr>
+              </div>
+            </div>
+            {/* Right: B/L No. and Reference */}
+            <div style={{ width: '20%' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '10px', padding: '2px 4px' }}>
+                B/L No. {data.blNumber || '1'}
+              </div>
+              <div style={{ height: '20px' }} />
+              <div style={{ fontSize: '8px', padding: '2px 4px' }}>Reference No.</div>
+            </div>
+          </div>
 
-            {/* Row 4: Reference No. */}
-            <tr>
-              <td colSpan={7} className="border-b border-black p-1" style={{ fontSize: '8px' }}>
-                Reference No.
-              </td>
-              <td className="border-l-2 border-b border-black" />
-            </tr>
+          {/* COPY NOT NEGOTIABLE */}
+          <div style={{ textAlign: 'right', padding: '4px 20px', fontWeight: 'bold', fontSize: '10px', letterSpacing: '0.15em' }}>
+            C O P Y&nbsp;&nbsp;N O T&nbsp;&nbsp;N E G O T I A B L E
+          </div>
 
-            {/* Row 5: Empty + COPY NOT NEGOTIABLE */}
-            <tr>
-              <td colSpan={8} className="text-center p-4 align-middle" style={{ minHeight: '80px' }}>
-                <div className="font-bold tracking-[0.3em]" style={{ fontSize: '11px' }}>
-                  C O P Y&nbsp;&nbsp;&nbsp;N O T&nbsp;&nbsp;&nbsp;N E G O T I A B L E
+          {/* HORIZONTAL LINE - half width */}
+          <div style={{ borderBottom: '1px solid #000080', width: '50%' }} />
+
+          {/* Consignee */}
+          <div style={{ padding: '2px 4px' }}>
+            <div style={{ fontSize: '8px' }}>Consignee</div>
+            <div style={{ height: '12px' }} />
+            <div style={{ fontWeight: 'bold' }}>TO ORDER</div>
+            <div style={{ height: '24px' }} />
+          </div>
+
+          {/* HORIZONTAL LINE - half width */}
+          <div style={{ borderBottom: '1px solid #000080', width: '50%' }} />
+
+          {/* Notify address */}
+          <div style={{ padding: '2px 4px' }}>
+            <div style={{ fontSize: '8px' }}>Notify address</div>
+            <div style={{ height: '60px' }} />
+          </div>
+
+          {/* HORIZONTAL LINE - half width */}
+          <div style={{ borderBottom: '1px solid #000080', width: '50%' }} />
+
+          {/* Vessel | Port of loading */}
+          <div style={{ display: 'flex' }}>
+            <div style={{ width: '50%', padding: '2px 4px' }}>
+              <div style={{ fontSize: '8px' }}>Vessel</div>
+              <div style={{ fontWeight: 'bold' }}>MV {data.vessel || '[VESSEL]'}</div>
+              <div style={{ height: '8px' }} />
+            </div>
+            <div style={{ width: '50%', padding: '2px 4px' }}>
+              <div style={{ fontSize: '8px' }}>Port of loading</div>
+              <div style={{ fontWeight: 'bold' }}>{data.portOfLoading ? `${data.portOfLoading}, BRAZIL` : '[PORT], BRAZIL'}</div>
+              <div style={{ height: '8px' }} />
+            </div>
+          </div>
+
+          {/* HORIZONTAL LINE - half width */}
+          <div style={{ borderBottom: '1px solid #000080', width: '50%' }} />
+
+          {/* Port of discharge */}
+          <div style={{ padding: '2px 4px' }}>
+            <div style={{ fontSize: '8px' }}>Port of discharge</div>
+            <div style={{ fontWeight: 'bold' }}>{data.portOfDischarge || '[PORT OF DISCHARGE]'}</div>
+            <div style={{ height: '8px' }} />
+          </div>
+
+          {/* HORIZONTAL LINE - FULL width */}
+          <div style={{ borderBottom: '2px solid #000080', width: '100%' }} />
+
+          {/* Shipper's description of goods | Gross weight */}
+          <div style={{ display: 'flex' }}>
+            {/* Left: Description */}
+            <div style={{ width: '75%', borderRight: '2px solid #000080' }}>
+              <div style={{ fontSize: '8px', padding: '2px 4px' }}>Shipper's description of goods</div>
+              <div style={{ padding: '4px 20px', minHeight: '180px' }}>
+                <div style={{ fontWeight: 'bold' }}>BRAZILIAN {data.cargoType || '[CARGO TYPE]'}</div>
+                <div style={{ fontWeight: 'bold' }}>PACKING : IN BULK</div>
+                <div style={{ height: '12px' }} />
+                <div>DU-E: {data.duE || '[DU-E]'}</div>
+                <div style={{ height: '8px' }} />
+                <div>CE: {data.ce || '[CE]'}</div>
+                <div style={{ height: '80px' }} />
+                <div style={{ fontSize: '9px', fontStyle: 'italic', paddingLeft: '20px' }}>
+                  (of which&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on deck at Shipper's risk; the Carriers not
                 </div>
-              </td>
-            </tr>
-
-            {/* Consignee Section */}
-            <tr>
-              <td 
-                rowSpan={3} 
-                className="border-r-2 border-t-2 border-black align-top"
-              >
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Consignee</div>
-                <div className="p-2" style={{ minHeight: '60px' }}>
-                  <div className="font-bold">TO ORDER</div>
+                <div style={{ fontSize: '9px', fontStyle: 'italic', paddingLeft: '20px' }}>
+                  being responsible for loss or damage howsoever arising)
                 </div>
-              </td>
-              <td colSpan={8} className="border-t-2 border-black" style={{ height: '0px' }} />
-            </tr>
-            <tr>
-              <td colSpan={8} />
-            </tr>
-            <tr>
-              <td colSpan={8} />
-            </tr>
+              </div>
+            </div>
+            {/* Right: Gross weight */}
+            <div style={{ width: '25%' }}>
+              <div style={{ fontSize: '8px', padding: '2px 4px' }}>Gross weight</div>
+              <div style={{ padding: '4px 8px', textAlign: 'right' }}>
+                <div style={{ height: '20px' }} />
+                {data.grossWeight !== null ? (
+                  <>
+                    <div>{grossWeightHalf}</div>
+                    <div style={{ fontWeight: 'bold' }}>{grossWeightFull}&nbsp;&nbsp;MT</div>
+                  </>
+                ) : (
+                  <>
+                    <div>[WEIGHT]</div>
+                    <div style={{ fontWeight: 'bold' }}>[WEIGHT]&nbsp;&nbsp;MT</div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
 
-            {/* Notify address Section */}
-            <tr>
-              <td 
-                rowSpan={4} 
-                className="border-r-2 border-t-2 border-black align-top"
-              >
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Notify address</div>
-                <div className="p-2" style={{ minHeight: '80px' }}>
-                  {/* Empty - no notify address in template */}
-                </div>
-              </td>
-              <td colSpan={8} className="border-t-2 border-black" style={{ height: '0px' }} />
-            </tr>
-            <tr><td colSpan={8} /></tr>
-            <tr><td colSpan={8} /></tr>
-            <tr><td colSpan={8} /></tr>
+          {/* HORIZONTAL LINE - FULL width */}
+          <div style={{ borderBottom: '2px solid #000080', width: '100%' }} />
 
-            {/* Vessel and Port of loading row */}
-            <tr>
-              <td className="border-t-2 border-r-2 border-black align-top" style={{ width: '27.5%' }}>
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Vessel</div>
-                <div className="p-1 font-bold">MV {data.vessel || '[VESSEL]'}</div>
-              </td>
-              <td colSpan={8} className="border-t-2 border-black align-top">
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Port of loading</div>
-                <div className="p-1 font-bold">{data.portOfLoading ? `${data.portOfLoading}, BRAZIL` : '[PORT], BRAZIL'}</div>
-              </td>
-            </tr>
+          {/* Bottom Section - 3 columns */}
+          <div style={{ display: 'flex' }}>
+            {/* Left Column - Freight info */}
+            <div style={{ width: '33%', borderRight: '2px solid #000080', padding: '4px' }}>
+              <div style={{ fontSize: '8px', fontStyle: 'italic' }}>Freight payable as per</div>
+              <div style={{ fontStyle: 'italic' }}>CHARTER-PARTY DATED</div>
+              <div style={{ height: '24px' }} />
+              <div style={{ fontSize: '8px', fontStyle: 'italic' }}>FREIGHT ADVANCE.</div>
+              <div style={{ fontSize: '8px', fontStyle: 'italic' }}>Received on account of freight:</div>
+              <div style={{ height: '16px' }} />
+              <div style={{ borderBottom: '1px solid #000080', width: '90%', marginBottom: '8px' }} />
+              <div style={{ height: '16px' }} />
+              <div style={{ fontSize: '8px', fontStyle: 'italic' }}>Time used for loading............ ....days.... .............hours.</div>
+            </div>
 
-            {/* Port of discharge */}
-            <tr>
-              <td colSpan={9} className="border-t-2 border-black align-top">
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Port of discharge</div>
-                <div className="p-1 font-bold">{data.portOfDischarge || '[PORT OF DISCHARGE]'}</div>
-              </td>
-            </tr>
+            {/* Middle Column - Shipped text */}
+            <div style={{ width: '34%', borderRight: '2px solid #000080' }}>
+              <div style={{ padding: '4px', fontSize: '9px' }}>
+                <span style={{ fontWeight: 'bold' }}>SHIPPED</span>&nbsp;&nbsp;at&nbsp;&nbsp;the&nbsp;&nbsp;Port&nbsp;&nbsp;of&nbsp;&nbsp;Loading&nbsp;&nbsp;in&nbsp;&nbsp;apparent&nbsp;&nbsp;&nbsp;&nbsp;good
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px', paddingLeft: '40px' }}>
+                order&nbsp;&nbsp;&nbsp;and&nbsp;&nbsp;&nbsp;condition&nbsp;&nbsp;&nbsp;on&nbsp;&nbsp;board&nbsp;&nbsp;the&nbsp;&nbsp;Vessel
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                for carriage&nbsp;&nbsp;to&nbsp;&nbsp;the&nbsp;&nbsp;Port of Discharge or so near thereto
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                as&nbsp;&nbsp;&nbsp;she&nbsp;&nbsp;may&nbsp;&nbsp;safely&nbsp;&nbsp;get&nbsp;&nbsp;&nbsp;the&nbsp;&nbsp;&nbsp;goods&nbsp;&nbsp;specified&nbsp;&nbsp;above.
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                Weight,&nbsp;&nbsp;measure,&nbsp;&nbsp;quality,&nbsp;&nbsp;quantity,&nbsp;&nbsp;condition,&nbsp;&nbsp;contents
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                and value unknown.
+              </div>
+              <div style={{ padding: '4px', fontSize: '9px' }}>
+                <span style={{ fontWeight: 'bold' }}>IN WITNESS</span>&nbsp;&nbsp;whereof the&nbsp;&nbsp;Master&nbsp;&nbsp;or&nbsp;&nbsp;Agent&nbsp;&nbsp;of&nbsp;&nbsp;the&nbsp;&nbsp;said
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                Vessel has signed the number of Bills of Lading indicated
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                below all of this tenor and&nbsp;&nbsp;date,&nbsp;&nbsp;any&nbsp;&nbsp;one&nbsp;&nbsp;of which being
+              </div>
+              <div style={{ padding: '0 4px', fontSize: '9px' }}>
+                accomplished the others shall be void.
+              </div>
+              <div style={{ height: '8px' }} />
+              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '9px', borderTop: '1px solid #000080', padding: '4px' }}>
+                FOR CONDITIONS OF CARRIAGE SEE OVERLEAF
+              </div>
 
-            {/* Shipper's description of goods and Gross weight */}
-            <tr>
-              <td className="border-t-2 border-r-2 border-black align-top" style={{ width: '75%' }} colSpan={7}>
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Shipper's description of goods</div>
-                <div className="p-2" style={{ minHeight: '180px' }}>
-                  <div className="font-bold">BRAZILIAN {data.cargoType || '[CARGO TYPE]'}</div>
-                  <div className="font-bold">PACKING : IN BULK</div>
-                  <br />
-                  <div>DU-E: {data.duE || '[DU-E]'}</div>
-                  <br />
-                  <div>CE: {data.ce || '[CE]'}</div>
-                </div>
-                <div className="p-1" style={{ fontSize: '8px' }}>
-                  <div className="italic">
-                    (of which NIL on deck at Shipper's risk; the Carriers not
-                  </div>
-                  <div className="italic pl-1">
-                    being responsible for loss or damage howsoever arising)
-                  </div>
-                </div>
-              </td>
-              <td colSpan={2} className="border-t-2 border-black align-top">
-                <div className="p-1" style={{ fontSize: '8px', borderBottom: '1px solid black' }}>Gross weight</div>
-                <div className="p-2 text-right">
-                  {data.grossWeight !== null ? (
-                    <>
-                      <div>{grossWeightHalf}</div>
-                      <div className="font-bold">{grossWeightFull}<span className="ml-1">MT</span></div>
-                    </>
-                  ) : (
-                    <>
-                      <div>[WEIGHT]</div>
-                      <div className="font-bold">[WEIGHT] MT</div>
-                    </>
-                  )}
-                </div>
-              </td>
-            </tr>
-
-            {/* Bottom Section - 3 columns */}
-            <tr>
-              {/* Left Column - Freight info */}
-              <td className="border-t-2 border-r-2 border-black align-top p-2" colSpan={3}>
-                <div style={{ fontSize: '8px' }}>Freight payable as per</div>
-                <div className="font-bold">CHARTER-PARTY DATED</div>
-                <br />
-                <br />
-                <div style={{ fontSize: '8px' }}>FREIGHT ADVANCE.</div>
-                <div style={{ fontSize: '8px' }}>Received on account of freight:</div>
-                <br />
-                <div>…………………………………………………………………….…………</div>
-                <br />
-                <div style={{ fontSize: '8px' }}>Time used for loading…………. ….days…. ..……….hours.</div>
-              </td>
-
-              {/* Middle Column */}
-              <td className="border-t-2 border-r-2 border-black align-top" colSpan={3}>
-                <div 
-                  className="text-center font-bold p-1" 
-                  style={{ fontSize: '9px', borderBottom: '1px solid black' }}
-                >
-                  FOR CONDITIONS OF CARRIAGE SEE OVERLEAF
-                </div>
-                <div className="p-2">
+              {/* Sub-section: Freight payable at and Number of Bs/L */}
+              <div style={{ display: 'flex', borderTop: '1px solid #000080' }}>
+                <div style={{ width: '50%', borderRight: '1px solid #000080', padding: '4px' }}>
                   <div style={{ fontSize: '8px' }}>Freight payable at</div>
-                  <br />
-                  <br />
-                  <div style={{ fontSize: '8px' }}>Number of original Bs/L</div>
-                  <div className="font-bold">3 ( THREE)</div>
+                  <div style={{ height: '20px' }} />
+                  <div style={{ borderTop: '1px solid #000080', paddingTop: '4px' }}>
+                    <div style={{ fontSize: '8px' }}>Number of original Bs/L</div>
+                    <div style={{ height: '8px' }} />
+                    <div style={{ fontWeight: 'bold', fontSize: '12px', textAlign: 'center' }}>3 ( THREE)</div>
+                  </div>
                 </div>
-              </td>
+                <div style={{ width: '50%', padding: '4px' }}>
+                  <div style={{ fontSize: '8px' }}>Place and date of issue <span style={{ fontStyle: 'italic' }}>SHIPPED ON BOARD</span></div>
+                  <div style={{ fontWeight: 'bold', fontSize: '9px' }}>{issuePlace}, BRAZIL, {issueDateFormatted}</div>
+                  <div style={{ borderTop: '1px solid #000080', marginTop: '8px', paddingTop: '4px' }}>
+                    <div style={{ fontSize: '8px' }}>Signature</div>
+                    <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '16px', marginBottom: '4px' }} />
+                    <div style={{ fontWeight: 'bold', fontSize: '9px', fontStyle: 'italic' }}>ROCHAMAR AGENCIA MARITIMA S A</div>
+                    <div style={{ height: '8px' }} />
+                    <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>-&nbsp;&nbsp;AS AGENTS ONLY</div>
+                    <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>FOR AND ON BEHALF OF THE MASTER</div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-              {/* Right Column - Place and signature */}
-              <td className="border-t-2 border-black align-top p-2" colSpan={3}>
-                <div style={{ fontSize: '8px' }}>Place and date of issue SHIPPED ON BOARD</div>
-                <div className="font-bold">{issuePlace}, BRAZIL, {issueDateFormatted}</div>
-                <br />
-                <div style={{ fontSize: '8px' }}>Signature</div>
-                <div className="mt-6 border-b border-black" style={{ width: '90%' }}></div>
-                <div className="font-bold mt-1">ROCHAMAR AGENCIA MARITIMA S A</div>
-                <div style={{ fontSize: '8px' }}>- AS AGENTS ONLY</div>
-                <div style={{ fontSize: '8px' }}>FOR AND ON BEHALF OF THE MASTER</div>
-              </td>
-            </tr>
+            {/* Right Column is now merged into middle */}
+          </div>
 
-            {/* Value Row */}
-            <tr>
-              <td className="border-t-2 border-black p-2 font-bold" colSpan={3}>
-                USD {formatCurrency(calculatedValue)}
-              </td>
-              <td colSpan={6} className="border-t-2 border-black" />
-            </tr>
-          </tbody>
-        </table>
+          {/* Value Row */}
+          <div style={{ borderTop: '2px solid #000080', display: 'flex' }}>
+            <div style={{ width: '33%', padding: '4px', fontWeight: 'bold', borderRight: '2px solid #000080' }}>
+              USD {formatCurrency(calculatedValue)}
+            </div>
+            <div style={{ width: '67%' }} />
+          </div>
+        </div>
       </div>
     </div>
   );

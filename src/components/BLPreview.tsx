@@ -192,10 +192,10 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
           {/* HORIZONTAL LINE - FULL width */}
           <div style={{ borderBottom: '2px solid #000080', width: '100%' }} />
 
-          {/* Bottom Section - 3 columns */}
+          {/* Bottom Section - 2 main columns */}
           <div style={{ display: 'flex' }}>
             {/* Left Column - Freight info */}
-            <div style={{ width: '33%', borderRight: '2px solid #000080', padding: '4px' }}>
+            <div style={{ width: '30%', borderRight: '2px solid #000080', padding: '4px' }}>
               <div style={{ fontSize: '8px', fontStyle: 'italic' }}>Freight payable as per</div>
               <div style={{ fontStyle: 'italic' }}>CHARTER-PARTY DATED</div>
               <div style={{ height: '24px' }} />
@@ -205,10 +205,15 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
               <div style={{ borderBottom: '1px solid #000080', width: '90%', marginBottom: '8px' }} />
               <div style={{ height: '16px' }} />
               <div style={{ fontSize: '8px', fontStyle: 'italic' }}>Time used for loading............ ....days.... .............hours.</div>
+              <div style={{ height: '16px', borderBottom: '2px solid #000080' }} />
+              <div style={{ padding: '4px 0', fontWeight: 'bold' }}>
+                USD {formatCurrency(calculatedValue)}
+              </div>
             </div>
 
-            {/* Middle Column - Shipped text */}
-            <div style={{ width: '34%', borderRight: '2px solid #000080' }}>
+            {/* Right Side - Contains SHIPPED text and sub-sections */}
+            <div style={{ width: '70%' }}>
+              {/* SHIPPED text section */}
               <div style={{ padding: '4px', fontSize: '9px' }}>
                 <span style={{ fontWeight: 'bold' }}>SHIPPED</span>&nbsp;&nbsp;at&nbsp;&nbsp;the&nbsp;&nbsp;Port&nbsp;&nbsp;of&nbsp;&nbsp;Loading&nbsp;&nbsp;in&nbsp;&nbsp;apparent&nbsp;&nbsp;&nbsp;&nbsp;good
               </div>
@@ -239,46 +244,37 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
               <div style={{ padding: '0 4px', fontSize: '9px' }}>
                 accomplished the others shall be void.
               </div>
-              <div style={{ height: '8px' }} />
-              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '9px', borderTop: '1px solid #000080', padding: '4px' }}>
+              
+              {/* FOR CONDITIONS line */}
+              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '9px', borderTop: '1px solid #000080', borderBottom: '1px solid #000080', padding: '4px', marginTop: '8px' }}>
                 FOR CONDITIONS OF CARRIAGE SEE OVERLEAF
               </div>
 
-              {/* Sub-section: Freight payable at and Number of Bs/L */}
-              <div style={{ display: 'flex', borderTop: '1px solid #000080' }}>
-                <div style={{ width: '50%', borderRight: '1px solid #000080', padding: '4px' }}>
+              {/* Bottom sub-sections - 2 columns */}
+              <div style={{ display: 'flex' }}>
+                <div style={{ width: '40%', borderRight: '1px solid #000080', padding: '4px' }}>
                   <div style={{ fontSize: '8px' }}>Freight payable at</div>
-                  <div style={{ height: '20px' }} />
+                  <div style={{ height: '16px' }} />
                   <div style={{ borderTop: '1px solid #000080', paddingTop: '4px' }}>
                     <div style={{ fontSize: '8px' }}>Number of original Bs/L</div>
                     <div style={{ height: '8px' }} />
                     <div style={{ fontWeight: 'bold', fontSize: '12px', textAlign: 'center' }}>3 ( THREE)</div>
                   </div>
                 </div>
-                <div style={{ width: '50%', padding: '4px' }}>
+                <div style={{ width: '60%', padding: '4px' }}>
                   <div style={{ fontSize: '8px' }}>Place and date of issue <span style={{ fontStyle: 'italic' }}>SHIPPED ON BOARD</span></div>
                   <div style={{ fontWeight: 'bold', fontSize: '9px' }}>{issuePlace}, BRAZIL, {issueDateFormatted}</div>
                   <div style={{ borderTop: '1px solid #000080', marginTop: '8px', paddingTop: '4px' }}>
                     <div style={{ fontSize: '8px' }}>Signature</div>
                     <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '16px', marginBottom: '4px' }} />
                     <div style={{ fontWeight: 'bold', fontSize: '9px', fontStyle: 'italic' }}>ROCHAMAR AGENCIA MARITIMA S A</div>
-                    <div style={{ height: '8px' }} />
+                    <div style={{ height: '4px' }} />
                     <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>-&nbsp;&nbsp;AS AGENTS ONLY</div>
                     <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>FOR AND ON BEHALF OF THE MASTER</div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Right Column is now merged into middle */}
-          </div>
-
-          {/* Value Row */}
-          <div style={{ borderTop: '2px solid #000080', display: 'flex' }}>
-            <div style={{ width: '33%', padding: '4px', fontWeight: 'bold', borderRight: '2px solid #000080' }}>
-              USD {formatCurrency(calculatedValue)}
-            </div>
-            <div style={{ width: '67%' }} />
           </div>
         </div>
       </div>

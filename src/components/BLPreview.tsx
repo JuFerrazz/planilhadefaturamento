@@ -213,7 +213,7 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
 
             {/* Right Side - Contains SHIPPED text and sub-sections */}
             <div style={{ width: '70%' }}>
-              {/* SHIPPED text section */}
+              {/* SHIPPED text section - positioned higher */}
               <div style={{ padding: '4px', fontSize: '9px' }}>
                 <span style={{ fontWeight: 'bold' }}>SHIPPED</span>&nbsp;&nbsp;at&nbsp;&nbsp;the&nbsp;&nbsp;Port&nbsp;&nbsp;of&nbsp;&nbsp;Loading&nbsp;&nbsp;in&nbsp;&nbsp;apparent&nbsp;&nbsp;&nbsp;&nbsp;good
               </div>
@@ -244,36 +244,40 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
               <div style={{ padding: '0 4px', fontSize: '9px' }}>
                 accomplished the others shall be void.
               </div>
-              
-              {/* FOR CONDITIONS line */}
-              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '9px', borderTop: '1px solid #000080', borderBottom: '1px solid #000080', padding: '4px', marginTop: '8px' }}>
-                FOR CONDITIONS OF CARRIAGE SEE OVERLEAF
-              </div>
+              <div style={{ height: '20px' }} />
+            </div>
+          </div>
 
-              {/* Bottom sub-sections - 2 columns */}
-              <div style={{ display: 'flex' }}>
-                <div style={{ width: '40%', borderRight: '1px solid #000080', padding: '4px' }}>
-                  <div style={{ fontSize: '8px' }}>Freight payable at</div>
-                  <div style={{ height: '16px' }} />
-                  <div style={{ borderTop: '1px solid #000080', paddingTop: '4px' }}>
-                    <div style={{ fontSize: '8px' }}>Number of original Bs/L</div>
-                    <div style={{ height: '8px' }} />
-                    <div style={{ fontWeight: 'bold', fontSize: '12px', textAlign: 'center' }}>3 ( THREE)</div>
-                  </div>
-                </div>
-                <div style={{ width: '60%', padding: '4px' }}>
-                  <div style={{ fontSize: '8px' }}>Place and date of issue <span style={{ fontStyle: 'italic' }}>SHIPPED ON BOARD</span></div>
-                  <div style={{ fontWeight: 'bold', fontSize: '9px' }}>{issuePlace}, BRAZIL, {issueDateFormatted}</div>
-                  <div style={{ borderTop: '1px solid #000080', marginTop: '8px', paddingTop: '4px' }}>
-                    <div style={{ fontSize: '8px' }}>Signature</div>
-                    <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '16px', marginBottom: '4px' }} />
-                    <div style={{ fontWeight: 'bold', fontSize: '9px', fontStyle: 'italic' }}>ROCHAMAR AGENCIA MARITIMA S A</div>
-                    <div style={{ height: '4px' }} />
-                    <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>-&nbsp;&nbsp;AS AGENTS ONLY</div>
-                    <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>FOR AND ON BEHALF OF THE MASTER</div>
-                  </div>
-                </div>
+          {/* FOR CONDITIONS line - spans full width below the 2 columns */}
+          <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '9px', borderTop: '1px solid #000080', borderBottom: '1px solid #000080', padding: '4px' }}>
+            FOR CONDITIONS OF CARRIAGE SEE OVERLEAF
+          </div>
+
+          {/* Bottom sub-sections - 3 columns */}
+          <div style={{ display: 'flex' }}>
+            <div style={{ width: '30%', borderRight: '2px solid #000080', padding: '4px' }}>
+              <div style={{ fontSize: '8px' }}>Freight payable at</div>
+              <div style={{ height: '16px' }} />
+              <div style={{ borderTop: '1px solid #000080', paddingTop: '4px' }}>
+                <div style={{ fontSize: '8px' }}>Number of original Bs/L</div>
+                <div style={{ height: '8px' }} />
+                <div style={{ fontWeight: 'bold', fontSize: '12px', textAlign: 'center' }}>3 ( THREE)</div>
               </div>
+            </div>
+            <div style={{ width: '35%', borderRight: '1px solid #000080', padding: '4px' }}>
+              <div style={{ fontSize: '8px' }}>Place and date of issue <span style={{ fontStyle: 'italic' }}>SHIPPED ON BOARD</span></div>
+              <div style={{ fontWeight: 'bold', fontSize: '9px' }}>{issuePlace}, BRAZIL, {issueDateFormatted}</div>
+              <div style={{ borderTop: '1px solid #000080', marginTop: '8px', paddingTop: '4px' }}>
+                <div style={{ fontSize: '8px' }}>Signature</div>
+              </div>
+            </div>
+            <div style={{ width: '35%', padding: '4px' }}>
+              <div style={{ height: '24px' }} />
+              <div style={{ borderBottom: '1px solid #000080', width: '90%', marginBottom: '4px' }} />
+              <div style={{ fontWeight: 'bold', fontSize: '9px', fontStyle: 'italic' }}>ROCHAMAR AGENCIA MARITIMA S A</div>
+              <div style={{ height: '4px' }} />
+              <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>-&nbsp;&nbsp;AS AGENTS ONLY</div>
+              <div style={{ fontSize: '9px', fontStyle: 'italic', fontWeight: 'bold' }}>FOR AND ON BEHALF OF THE MASTER</div>
             </div>
           </div>
         </div>

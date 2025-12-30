@@ -146,6 +146,36 @@
   }
 }
 
+/* Print styles for BL document */
+@media print {
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  .print\\:block {
+    display: block !important;
+  }
+  
+  #bl-document {
+    width: 100%;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 10mm;
+    border: none !important;
+  }
+  
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}
+
 a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovable"], .lovable-badge {
   display: none !important;
   opacity: 0 !important;

@@ -148,10 +148,17 @@
 
 /* Print styles for BL document */
 @media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  
   body {
     background: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    margin: 0;
+    padding: 0;
   }
   
   .print\\:hidden {
@@ -162,17 +169,28 @@
     display: block !important;
   }
   
-  #bl-document {
-    width: 100%;
-    max-width: 210mm;
-    margin: 0 auto;
-    padding: 10mm;
-    border: none !important;
+  .print\\:max-w-none {
+    max-width: none !important;
   }
   
-  @page {
-    size: A4;
-    margin: 10mm;
+  .print\\:w-full {
+    width: 100% !important;
+  }
+  
+  #bl-document {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 3mm 8mm 8mm 8mm !important; /* Menos padding no topo */
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  /* Remove bordas externas do container principal */
+  #bl-document > div {
+    border: none !important;
   }
 }
 
@@ -183,36 +201,4 @@ a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovabl
   pointer-events: none !important;
   position: absolute !important;
   z-index: -9999 !important;
-}
-
-/* Print styles for BL */
-@media print {
-  @page {
-    size: A4;
-    margin: 0;
-  }
-  
-  body {
-    margin: 0;
-    padding: 0;
-  }
-  
-  #bl-document {
-    width: 100vw !important;
-    max-width: none !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    padding: 8mm !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-  
-  .print\\:max-w-none {
-    max-width: none !important;
-  }
-  
-  .print\\:w-full {
-    width: 100% !important;
-  }
 }

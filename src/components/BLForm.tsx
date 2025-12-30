@@ -180,7 +180,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
             <Label>Local de Emissão</Label>
             <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
               <span className="text-foreground">
-                {data.portOfLoading || 'SANTOS'}, BRAZIL
               </span>
             </div>
           </div>

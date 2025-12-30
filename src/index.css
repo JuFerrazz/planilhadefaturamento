@@ -208,11 +208,20 @@ a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovabl
     box-shadow: none !important;
   }
   
+  /* Remove apenas a borda externa do container principal */
+  #bl-document > div {
+    border: none !important;
+  }
+  
   .print\\:max-w-none {
     max-width: none !important;
   }
   
   .print\\:w-full {
     width: 100% !important;
+  }
+  
+  .print\\:border-0 {
+    border: none !important;
   }
 }

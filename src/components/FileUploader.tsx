@@ -158,9 +158,9 @@ export function FileUploader() {
   }, [handleProcessingResult]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full">
       {/* Card Container */}
-      <div className="bg-card rounded-2xl shadow-lg border border-border/50 overflow-hidden">
+      <div className="bg-card rounded-2xl shadow-lg border border-border/50 overflow-hidden w-full">
         {/* Header */}
         <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b border-border/50">
           <div className="flex items-center justify-between">

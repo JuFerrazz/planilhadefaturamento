@@ -190,7 +190,6 @@ export function FileUploader() {
           <Input
             id="shipName"
             type="text"
-            placeholder="Ex: MV Atlantic Star"
             value={shipName}
             onChange={(e) => setShipName(e.target.value)}
             className="mt-4 bg-background/80 border-border/50 focus:bg-background"

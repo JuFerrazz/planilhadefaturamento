@@ -182,7 +182,7 @@
     max-width: none !important;
     height: 100vh !important;
     margin: 0 !important;
-    padding: 3mm 8mm 8mm 8mm !important; /* Menos padding no topo */
+    padding: 1mm 8mm 8mm 8mm !important; /* Ainda menos padding no topo */
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;

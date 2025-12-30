@@ -184,3 +184,35 @@ a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovabl
   position: absolute !important;
   z-index: -9999 !important;
 }
+
+/* Print styles for BL */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  #bl-document {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 8mm !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .print\\:max-w-none {
+    max-width: none !important;
+  }
+  
+  .print\\:w-full {
+    width: 100% !important;
+  }
+}

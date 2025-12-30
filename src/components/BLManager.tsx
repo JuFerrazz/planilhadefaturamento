@@ -220,7 +220,7 @@ export const BLManager = () => {
       </Tabs>
 
       {/* Print-only content */}
-      <div className="hidden print:block">
+      <div className="hidden print:block print:w-full print:h-full print:m-0 print:p-0">
         <BLPreview data={activeBL} />
       </div>
     </div>

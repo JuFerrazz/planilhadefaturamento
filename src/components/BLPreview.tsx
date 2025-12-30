@@ -23,7 +23,7 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
     : '';
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 print:space-y-0 print:w-full print:h-full">
       {/* Pending Fields Alert */}
       {pendingFields.length > 0 && (
         <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex gap-2 print:hidden">
@@ -40,7 +40,7 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
       {/* BL Document - Exact replica of CONGENBILL */}
       <div 
         id="bl-document" 
-        className="bg-white text-blue-800 print:border-0 print:p-0 mx-auto"
+        className="bg-white text-blue-800 border border-border rounded-lg print:border-0 print:rounded-none print:p-0 print:m-0 print:w-full print:max-w-none print:h-full mx-auto"
         style={{ 
           fontFamily: 'Arial, sans-serif', 
           fontSize: '10px', 

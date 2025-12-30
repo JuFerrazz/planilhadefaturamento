@@ -158,7 +158,7 @@ export function FileUploader() {
   }, [handleProcessingResult]);
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-2xl mx-auto print:max-w-none print:w-full">
       {/* Card Container */}
       <div className="bg-card rounded-2xl shadow-lg border border-border/50 overflow-hidden w-full">
         {/* Header */}

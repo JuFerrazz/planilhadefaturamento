@@ -48,7 +48,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="shipperName"
               value={data.shipperName}
               onChange={(e) => updateField('shipperName', e.target.value.toUpperCase())}
-              placeholder="ADM DO BRASIL LTDA."
               className="uppercase"
             />
           </div>
@@ -76,7 +75,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="vessel"
               value={data.vessel}
               onChange={(e) => updateField('vessel', e.target.value.toUpperCase())}
-              placeholder="MV ANDROMACHE"
               className="uppercase"
             />
           </div>
@@ -86,7 +84,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="portOfLoading"
               value={data.portOfLoading}
               onChange={(e) => updateField('portOfLoading', e.target.value.toUpperCase())}
-              placeholder="SANTOS"
               className="uppercase"
             />
           </div>
@@ -96,7 +93,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="portOfDischarge"
               value={data.portOfDischarge}
               onChange={(e) => updateField('portOfDischarge', e.target.value.toUpperCase())}
-              placeholder="KOSICHANG, THAILAND"
               className="uppercase"
             />
           </div>
@@ -115,7 +111,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="cargoType"
               value={data.cargoType}
               onChange={(e) => updateField('cargoType', e.target.value.toUpperCase())}
-              placeholder="SOYBEANS MEAL"
               className="uppercase"
             />
             <p className="text-xs text-muted-foreground">
@@ -129,7 +124,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
                 id="duE"
                 value={data.duE}
                 onChange={(e) => updateField('duE', e.target.value.toUpperCase())}
-                placeholder="25BR0024049750"
+                placeholder="25BR0000000000"
                 className="uppercase"
               />
             </div>
@@ -139,7 +134,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
                 id="ce"
                 value={data.ce}
                 onChange={(e) => updateField('ce', e.target.value)}
-                placeholder="152507387439804"
               />
             </div>
           </div>
@@ -160,7 +154,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               step="0.001"
               value={data.grossWeight ?? ''}
               onChange={(e) => updateField('grossWeight', e.target.value ? parseFloat(e.target.value) : null)}
-              placeholder="33000.000"
             />
           </div>
           <div className="space-y-2">

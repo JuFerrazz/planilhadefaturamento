@@ -198,23 +198,14 @@ a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovabl
   }
   
   #bl-document {
-    width: 210mm !important;
-    height: 297mm !important;
-    max-width: 210mm !important;
-    max-height: 297mm !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
     margin: 0 !important;
-    padding: 6mm !important;
+    padding: 8mm !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    overflow: hidden !important;
-    page-break-after: avoid !important;
-    page-break-inside: avoid !important;
-  }
-  
-  /* Remove apenas a borda externa do container principal */
-  #bl-document > div {
-    border: none !important;
   }
   
   .print\\:max-w-none {

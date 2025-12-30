@@ -34,11 +34,20 @@ export const BLManager = () => {
     const newId = String(blList.length + 1);
     const newBL = createEmptyBL(newId);
     newBL.blNumber = newId;
+    
+    // Copia as informações de vessel/ports da primeira ficha
+    if (blList.length > 0) {
+      const firstBL = blList[0];
+      newBL.vessel = firstBL.vessel;
+      newBL.portOfLoading = firstBL.portOfLoading;
+      newBL.portOfDischarge = firstBL.portOfDischarge;
+    }
+    
     setBlList([...blList, newBL]);
     setActiveIndex(blList.length);
     toast({
       title: "Nova ficha criada",
-      description: `Ficha BL #${newId} adicionada.`,
+      description: `Ficha BL #${newId} adicionada com informações de vessel/ports compartilhadas.`,
     });
   }, [blList]);
 
@@ -70,6 +79,22 @@ export const BLManager = () => {
   const handleUpdateBL = useCallback((data: BLData) => {
     const newList = [...blList];
     newList[activeIndex] = data;
+    
+    // Se estamos editando a primeira ficha (ID = '1') e alteramos vessel/ports,
+    // propaga essas alterações para todas as outras fichas
+    if (data.id === '1') {
+      const vesselFields = {
+        vessel: data.vessel,
+        portOfLoading: data.portOfLoading,
+        portOfDischarge: data.portOfDischarge
+      };
+      
+      // Atualiza todas as outras fichas com as mesmas informações de vessel/ports
+      for (let i = 1; i < newList.length; i++) {
+        newList[i] = { ...newList[i], ...vesselFields };
+      }
+    }
+    
     setBlList(newList);
   }, [blList, activeIndex]);
 

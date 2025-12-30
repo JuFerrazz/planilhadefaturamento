@@ -92,6 +92,7 @@ export const getBLStatus = (data: BLData): 'complete' | 'pending' => {
   const requiredFields = [
     data.vessel,
     data.portOfLoading,
+    data.portOfDischarge, // Agora obrigatório
     data.shipperName,
     data.shipperCnpj,
     data.cargoType,
@@ -107,16 +108,21 @@ export const getBLStatus = (data: BLData): 'complete' | 'pending' => {
 export const getPendingFields = (data: BLData): string[] => {
   const pending: string[] = [];
   
+  // Vessel & Ports primeiro (obrigatórios)
   if (!data.vessel) pending.push('Vessel');
   if (!data.portOfLoading) pending.push('Port of Loading');
+  if (!data.portOfDischarge) pending.push('Port of Discharge');
+  
+  // Outros campos obrigatórios
   if (!data.shipperName) pending.push('Shipper Name');
   if (!data.shipperCnpj) pending.push('Shipper CNPJ');
   if (!data.cargoType) pending.push('Cargo Type');
   if (!data.grossWeight) pending.push('Gross Weight');
   if (!data.issueDate) pending.push('Issue Date');
+  
+  // Campos opcionais
   if (!data.duE) pending.push('DU-E');
   if (!data.ce) pending.push('CE');
-  if (!data.portOfDischarge) pending.push('Port of Discharge');
   
   return pending;
 };

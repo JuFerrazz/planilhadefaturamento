@@ -15,12 +15,12 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
     : 'DECEMBER XXth, 2025';
 
   // Format gross weight display
-  const grossWeightHalf = data.grossWeight !== null 
-    ? (data.grossWeight / 2).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).replace(/,/g, '.')
-    : '';
   const grossWeightFull = data.grossWeight !== null 
     ? data.grossWeight.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).replace(/,/g, '.')
     : '';
+
+  // Check if cargo type needs "PACKING : IN BULK" on separate line
+  const cargoNeedsPacking = data.cargoType !== 'CANE RAW SUGAR IN BULK';
 
   return (
     <div className="space-y-4 print:space-y-0 print:w-full print:h-full">
@@ -154,8 +154,8 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
             <div style={{ width: '75%', borderRight: '2px solid #000080' }}>
               <div style={{ fontSize: '10px', padding: '4px 6px' }}>Shipper's description of goods</div>
               <div style={{ padding: '8px 25px', minHeight: '220px' }}>
-                <div style={{ fontWeight: 'bold' }}>BRAZILIAN {data.cargoType || '[CARGO TYPE]'}</div>
-                <div style={{ fontWeight: 'bold' }}>PACKING : IN BULK</div>
+                <div style={{ fontWeight: 'bold' }}>BRAZILIAN {data.cargoType || '[CARGO TYPE]'}{!cargoNeedsPacking ? '' : ''}</div>
+                {cargoNeedsPacking && <div style={{ fontWeight: 'bold' }}>PACKING : IN BULK</div>}
                 <div style={{ height: '20px' }} />
                 <div>DU-E: {data.duE || '[DU-E]'}</div>
                 <div style={{ height: '15px' }} />
@@ -173,18 +173,8 @@ export const BLPreview = ({ data }: BLPreviewProps) => {
             <div style={{ width: '25%' }}>
               <div style={{ fontSize: '10px', padding: '4px 6px' }}>Gross weight</div>
               <div style={{ padding: '8px 10px', textAlign: 'right' }}>
-                <div style={{ height: '30px' }} />
-                {data.grossWeight !== null ? (
-                  <>
-                    <div>{grossWeightHalf}</div>
-                    <div style={{ fontWeight: 'bold' }}>{grossWeightFull}&nbsp;&nbsp;MT</div>
-                  </>
-                ) : (
-                  <>
-                    <div>[WEIGHT]</div>
-                    <div style={{ fontWeight: 'bold' }}>[WEIGHT]&nbsp;&nbsp;MT</div>
-                  </>
-                )}
+                <div style={{ height: '50px' }} />
+                <div style={{ fontWeight: 'bold' }}>{data.grossWeight !== null ? `${grossWeightFull}  MT` : '[WEIGHT]  MT'}</div>
               </div>
             </div>
           </div>

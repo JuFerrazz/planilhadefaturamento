@@ -4,10 +4,22 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { PdfDropZone } from './PdfDropZone';
+import { ParsedDUEData } from '@/lib/pdfParser';
+
+const CARGO_OPTIONS = [
+  { value: 'SOYBEANS', label: 'BRAZILIAN SOYBEANS PACKING : IN BULK' },
+  { value: 'CANE RAW SUGAR IN BULK', label: 'BRAZILIAN CANE RAW SUGAR IN BULK' },
+  { value: 'SOYBEANS MEAL', label: 'BRAZILIAN SOYBEANS MEAL PACKING : IN BULK' },
+  { value: 'YELLOW CORN', label: 'BRAZILIAN YELLOW CORN PACKING : IN BULK' },
+  { value: 'SOYBEANS OIL', label: 'BRAZILIAN SOYBEANS OIL PACKING : IN BULK' },
+  { value: 'GOLDEN DISTILLERS DRIED GRAINS SOLUBLE', label: 'BRAZILIAN GOLDEN DISTILLERS DRIED GRAINS SOLUBLE PACKING : IN BULK' },
+];
 
 interface BLFormProps {
   data: BLData;
@@ -19,10 +31,23 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
     onChange({ ...data, [field]: value });
   };
 
+  const handlePdfData = (pdfData: ParsedDUEData) => {
+    onChange({
+      ...data,
+      duE: pdfData.duE || data.duE,
+      shipperCnpj: pdfData.shipperCnpj || data.shipperCnpj,
+      shipperName: pdfData.shipperName || data.shipperName,
+      grossWeight: pdfData.grossWeight || data.grossWeight,
+    });
+  };
+
   const calculatedValue = calculateValue(data.grossWeight);
 
   return (
     <div className="space-y-6">
+      {/* PDF Drop Zone */}
+      <PdfDropZone onDataExtracted={handlePdfData} />
+
       {/* BL Number */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -47,6 +72,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="shipperName"
               value={data.shipperName}
               onChange={(e) => updateField('shipperName', e.target.value.toUpperCase())}
+              placeholder="ADM DO BRASIL LTDA."
               className="uppercase"
             />
           </div>
@@ -73,6 +99,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="vessel"
               value={data.vessel}
               onChange={(e) => updateField('vessel', e.target.value.toUpperCase())}
+              placeholder="MV ANDROMACHE"
               className="uppercase"
             />
           </div>
@@ -82,6 +109,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="portOfLoading"
               value={data.portOfLoading}
               onChange={(e) => updateField('portOfLoading', e.target.value.toUpperCase())}
+              placeholder="SANTOS"
               className="uppercase"
             />
           </div>
@@ -91,6 +119,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="portOfDischarge"
               value={data.portOfDischarge}
               onChange={(e) => updateField('portOfDischarge', e.target.value.toUpperCase())}
+              placeholder="KOSICHANG, THAILAND"
               className="uppercase"
             />
           </div>
@@ -105,15 +134,18 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label htmlFor="cargoType">Tipo de Carga *</Label>
-            <Input
-              id="cargoType"
-              value={data.cargoType}
-              onChange={(e) => updateField('cargoType', e.target.value.toUpperCase())}
-              className="uppercase"
-            />
-            <p className="text-xs text-muted-foreground">
-              Formato final: BRAZILIAN '{data.cargoType || 'SOYBEANS MEAL'}' PACKING : IN BULK
-            </p>
+            <Select value={data.cargoType} onValueChange={(value) => updateField('cargoType', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo de carga" />
+              </SelectTrigger>
+              <SelectContent>
+                {CARGO_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -122,6 +154,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
                 id="duE"
                 value={data.duE}
                 onChange={(e) => updateField('duE', e.target.value.toUpperCase())}
+                placeholder="25BR0024049750"
                 className="uppercase"
               />
             </div>
@@ -131,6 +164,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
                 id="ce"
                 value={data.ce}
                 onChange={(e) => updateField('ce', e.target.value)}
+                placeholder="152507387439804"
               />
             </div>
           </div>
@@ -151,6 +185,7 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               step="0.001"
               value={data.grossWeight ?? ''}
               onChange={(e) => updateField('grossWeight', e.target.value ? parseFloat(e.target.value) : null)}
+              placeholder="33000.000"
             />
           </div>
           <div className="space-y-2">

@@ -154,6 +154,17 @@ export const BILLING_INSTRUCTIONS: BillingInstruction[] = [
 export function findBillingInstruction(shipperName: string): BillingInstruction | undefined {
   const normalizedName = shipperName.toUpperCase().trim();
   
+  // Regra especial para RAIZEN - qualquer shipper que comece com RAIZEN
+  if (normalizedName.startsWith('RAIZEN')) {
+    return {
+      shipper: 'RAIZEN',
+      email: 'exportacao.granel@raxbrasil.com.br',
+      remarks: 'Faturar sempre para RAX BRASIL ASSESSORIA EM COMERCIO EXTERIOR LTDA - 17.343.028/0001-24',
+      overrideCNPJ: '17.343.028/0001-24',
+      overrideCompanyName: 'RAX BRASIL ASSESSORIA EM COMERCIO EXTERIOR LTDA',
+    };
+  }
+  
   return BILLING_INSTRUCTIONS.find(instruction => {
     // Verifica o nome principal
     if (normalizedName.includes(instruction.shipper.toUpperCase())) {

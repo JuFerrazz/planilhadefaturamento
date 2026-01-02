@@ -1,8 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configure worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js`;
-
 export interface ParsedDUEData {
   duE: string;
   shipperCnpj: string;
@@ -10,8 +5,28 @@ export interface ParsedDUEData {
   grossWeight: number;
 }
 
+// Load PDF.js from CDN dynamically
+const loadPdfJs = async (): Promise<any> => {
+  if ((window as any).pdfjsLib) {
+    return (window as any).pdfjsLib;
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.onload = () => {
+      const pdfjs = (window as any).pdfjsLib;
+      pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve(pdfjs);
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+
 export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => {
   try {
+    const pdfjsLib = await loadPdfJs();
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
@@ -34,7 +49,6 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
     const duE = dueMatch ? dueMatch[0].replace(/-/g, '') : '';
     
     // Extract CNPJ and company name from Exportadores section
-    // Pattern: CNPJ followed by company name
     const cnpjPattern = /(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\s+([A-Z][A-Z\s\.\-&]+(?:S\.?A\.?|LTDA\.?|ME|EPP|EIRELI)?)/gi;
     
     let shipperCnpj = '';
@@ -62,17 +76,14 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
     }
     
     // Extract Peso Líquido (KG)
-    // Look for pattern like "30.000.000,00000" after "Peso líquido" or "KG"
     const pesoMatch = fullText.match(/Peso\s*l[íi]quido\s*\(?\s*KG\s*\)?[^\d]*(\d{1,3}(?:\.\d{3})*,\d+)/i) 
-      || fullText.match(/(\d{1,3}(?:\.\d{3})*,\d{5})/); // Fallback: find number with 5 decimal places
+      || fullText.match(/(\d{1,3}(?:\.\d{3})*,\d{5})/);
     
     let grossWeight = 0;
     
     if (pesoMatch) {
       const pesoStr = pesoMatch[1];
-      // Parse Brazilian number format: 30.000.000,00000
       const pesoKg = parseFloat(pesoStr.replace(/\./g, '').replace(',', '.'));
-      // Convert KG to MT (divide by 1000)
       grossWeight = pesoKg / 1000;
     }
     

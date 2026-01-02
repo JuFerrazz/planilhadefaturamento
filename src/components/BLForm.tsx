@@ -8,6 +8,8 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { PdfDropZone } from './PdfDropZone';
+import { ParsedDUEData } from '@/lib/pdfParser';
 
 interface BLFormProps {
   data: BLData;
@@ -19,10 +21,23 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
     onChange({ ...data, [field]: value });
   };
 
+  const handlePdfData = (pdfData: ParsedDUEData) => {
+    onChange({
+      ...data,
+      duE: pdfData.duE || data.duE,
+      shipperCnpj: pdfData.shipperCnpj || data.shipperCnpj,
+      shipperName: pdfData.shipperName || data.shipperName,
+      grossWeight: pdfData.grossWeight || data.grossWeight,
+    });
+  };
+
   const calculatedValue = calculateValue(data.grossWeight);
 
   return (
     <div className="space-y-6">
+      {/* PDF Drop Zone */}
+      <PdfDropZone onDataExtracted={handlePdfData} />
+
       {/* BL Number */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">

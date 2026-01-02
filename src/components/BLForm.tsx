@@ -42,6 +42,9 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
   };
 
   const calculatedValue = calculateValue(data.grossWeight);
+  
+  // Verifica se é o primeiro BL (editável) ou não
+  const isFirstBL = data.blNumber === '1';
 
   return (
     <div className="space-y-6">
@@ -57,6 +60,73 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
             value={data.blNumber}
             onChange={(e) => updateField('blNumber', e.target.value)}
           />
+        </div>
+      </div>
+
+      {/* Vessel & Ports Section - PRIMEIRO E FIXO */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+            Vessel & Ports
+          </h3>
+          {!isFirstBL && (
+            <span className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+              Copiado do BL #1
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="vessel">Vessel (Nome do Navio) *</Label>
+            {isFirstBL ? (
+              <Input
+                id="vessel"
+                value={data.vessel}
+                onChange={(e) => updateField('vessel', e.target.value.toUpperCase())}
+                className="uppercase"
+              />
+            ) : (
+              <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
+                <span className="text-foreground uppercase">
+                  {data.vessel || '[VESSEL]'}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="portOfLoading">Port of Loading *</Label>
+            {isFirstBL ? (
+              <Input
+                id="portOfLoading"
+                value={data.portOfLoading}
+                onChange={(e) => updateField('portOfLoading', e.target.value.toUpperCase())}
+                className="uppercase"
+              />
+            ) : (
+              <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
+                <span className="text-foreground uppercase">
+                  {data.portOfLoading || '[PORT]'}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="portOfDischarge">Port of Discharge</Label>
+            {isFirstBL ? (
+              <Input
+                id="portOfDischarge"
+                value={data.portOfDischarge}
+                onChange={(e) => updateField('portOfDischarge', e.target.value.toUpperCase())}
+                className="uppercase"
+              />
+            ) : (
+              <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
+                <span className="text-foreground uppercase">
+                  {data.portOfDischarge || '[PORT OF DISCHARGE]'}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -81,42 +151,6 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
               id="shipperCnpj"
               value={data.shipperCnpj}
               onChange={(e) => updateField('shipperCnpj', e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Vessel & Ports Section */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-          Vessel & Ports
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="vessel">Vessel (Nome do Navio) *</Label>
-            <Input
-              id="vessel"
-              value={data.vessel}
-              onChange={(e) => updateField('vessel', e.target.value.toUpperCase())}
-              className="uppercase"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="portOfLoading">Port of Loading *</Label>
-            <Input
-              id="portOfLoading"
-              value={data.portOfLoading}
-              onChange={(e) => updateField('portOfLoading', e.target.value.toUpperCase())}
-              className="uppercase"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="portOfDischarge">Port of Discharge</Label>
-            <Input
-              id="portOfDischarge"
-              value={data.portOfDischarge}
-              onChange={(e) => updateField('portOfDischarge', e.target.value.toUpperCase())}
-              className="uppercase"
             />
           </div>
         </div>

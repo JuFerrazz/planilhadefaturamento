@@ -34,11 +34,20 @@ export const BLManager = () => {
     const newId = String(blList.length + 1);
     const newBL = createEmptyBL(newId);
     newBL.blNumber = newId;
+    
+    // Copia informações de Vessel & Ports do primeiro BL
+    if (blList.length > 0) {
+      const firstBL = blList[0];
+      newBL.vessel = firstBL.vessel;
+      newBL.portOfLoading = firstBL.portOfLoading;
+      newBL.portOfDischarge = firstBL.portOfDischarge;
+    }
+    
     setBlList([...blList, newBL]);
     setActiveIndex(blList.length);
     toast({
       title: "Nova ficha criada",
-      description: `Ficha BL #${newId} adicionada.`,
+      description: `Ficha BL #${newId} adicionada com informações de vessel copiadas.`,
     });
   }, [blList]);
 
@@ -70,6 +79,16 @@ export const BLManager = () => {
   const handleUpdateBL = useCallback((data: BLData) => {
     const newList = [...blList];
     newList[activeIndex] = data;
+    
+    // Se estamos editando o BL #1, propaga as mudanças de Vessel & Ports para todos os outros
+    if (data.blNumber === '1') {
+      for (let i = 1; i < newList.length; i++) {
+        newList[i].vessel = data.vessel;
+        newList[i].portOfLoading = data.portOfLoading;
+        newList[i].portOfDischarge = data.portOfDischarge;
+      }
+    }
+    
     setBlList(newList);
   }, [blList, activeIndex]);
 

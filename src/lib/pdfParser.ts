@@ -49,7 +49,7 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
     const duE = dueMatch ? dueMatch[0].replace(/-/g, '') : '';
     
     // Extract CNPJ and company name from Exportadores section
-    const cnpjPattern = /(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\s+([A-Z][A-Z\s\.\-&]+(?:S\.?A\.?|LTDA\.?|ME|EPP|EIRELI)?)/gi;
+    const cnpjPattern = /(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\s+([A-Z][A-Z\s\.\-&]+?(?:S\.?A\.?|LTDA\.?|ME|EPP|EIRELI)?)(?=\s|$)/gi;
     
     let shipperCnpj = '';
     let shipperName = '';
@@ -61,7 +61,12 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
       const match = cnpjPattern.exec(afterExportadores);
       if (match) {
         shipperCnpj = match[1];
-        shipperName = match[2].trim().toUpperCase();
+        // Clean up shipper name - remove common suffixes that might be picked up
+        let rawName = match[2].trim().toUpperCase();
+        // Remove common words that might be from next line
+        rawName = rawName.replace(/\s+(FORMA|DE|EXPORTA|EXPORTACAO|EXPORTAÇÃO|COMERCIO|EXTERIOR).*$/i, '');
+        // Clean up extra spaces
+        shipperName = rawName.replace(/\s+/g, ' ').trim();
       }
     }
     
@@ -71,7 +76,11 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
       const match = cnpjPattern.exec(fullText);
       if (match) {
         shipperCnpj = match[1];
-        shipperName = match[2].trim().toUpperCase();
+        let rawName = match[2].trim().toUpperCase();
+        // Remove common words that might be from next line
+        rawName = rawName.replace(/\s+(FORMA|DE|EXPORTA|EXPORTACAO|EXPORTAÇÃO|COMERCIO|EXTERIOR).*$/i, '');
+        // Clean up extra spaces
+        shipperName = rawName.replace(/\s+/g, ' ').trim();
       }
     }
     

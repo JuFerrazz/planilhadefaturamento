@@ -268,14 +268,7 @@ export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList
             </Select>
           </div>
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label>Data da Atracação *</Label>
-              {!isFirstOfAtracacao && (
-                <span className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
-                  Edite no 1º BL desta atracação
-                </span>
-              )}
-            </div>
+            <Label>Data da Atracação *</Label>
             {isFirstOfAtracacao ? (
               <Popover>
                 <PopoverTrigger asChild>

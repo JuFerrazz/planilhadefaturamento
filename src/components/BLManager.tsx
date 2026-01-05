@@ -166,79 +166,7 @@ export const BLManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Atracação Management */}
-      <Card className="print:hidden">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Anchor className="w-5 h-5" />
-              Atracações ({atracaoList.length})
-            </CardTitle>
-            <Button onClick={handleAddAtracacao} size="sm" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Atracação
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2">
-              {atracaoList.map((atr) => {
-                const blCount = blList.filter(bl => bl.atracaoId === atr.id).length;
-                const isActive = activeBL.atracaoId === atr.id;
-                
-                return (
-                  <div
-                    key={atr.id}
-                    className={`
-                      flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
-                      ${isActive 
-                        ? 'bg-primary/10 border-primary' 
-                        : 'bg-card hover:bg-muted border-border'
-                      }
-                    `}
-                    onClick={() => {
-                      // Switch to first BL of this atracacao if any
-                      const firstBLIndex = blList.findIndex(bl => bl.atracaoId === atr.id);
-                      if (firstBLIndex >= 0) {
-                        setActiveIndex(firstBLIndex);
-                      }
-                    }}
-                  >
-                    <Anchor className="w-4 h-4" />
-                    <span className="font-medium whitespace-nowrap">
-                      {atr.name}
-                    </span>
-                    <Badge variant="secondary" className="text-xs">
-                      {blCount} BL{blCount !== 1 ? 's' : ''}
-                    </Badge>
-                    {atr.issueDate && (
-                      <span className="text-xs text-muted-foreground">
-                        {format(atr.issueDate, "dd/MM")}
-                      </span>
-                    )}
-                    {atracaoList.length > 1 && blCount === 0 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveAtracacao(atr.id);
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-
-      {/* BL List Navigation */}
+      {/* BL List Navigation with Atracação inline */}
       <Card className="print:hidden">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -249,7 +177,7 @@ export const BLManager = () => {
             <div className="flex gap-2">
               <Button onClick={handlePrint} variant="outline" size="sm">
                 <Printer className="w-4 h-4 mr-2" />
-                Imprimir (Ctrl+P)
+                Imprimir
               </Button>
               <Button onClick={handleAddBL} size="sm">
                 <Plus className="w-4 h-4 mr-2" />
@@ -258,71 +186,105 @@ export const BLManager = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {blsByAtracacao.map(({ atracacao, bls }) => (
-              bls.length > 0 && (
-                <div key={atracacao.id}>
-                  <div className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
-                    <Anchor className="w-3 h-3" />
-                    {atracacao.name}
-                    {atracacao.issueDate && (
-                      <span>({format(atracacao.issueDate, "dd/MM/yyyy")})</span>
+        <CardContent className="space-y-4">
+          {/* Atracações inline bar */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Anchor className="w-3 h-3" />
+              Atracações:
+            </span>
+            {atracaoList.map((atr) => {
+              const blCount = blList.filter(bl => bl.atracaoId === atr.id).length;
+              const isActive = activeBL.atracaoId === atr.id;
+              
+              return (
+                <Badge
+                  key={atr.id}
+                  variant={isActive ? "default" : "outline"}
+                  className="cursor-pointer flex items-center gap-1"
+                  onClick={() => {
+                    const firstBLIndex = blList.findIndex(bl => bl.atracaoId === atr.id);
+                    if (firstBLIndex >= 0) {
+                      setActiveIndex(firstBLIndex);
+                    }
+                  }}
+                >
+                  {atr.name}
+                  {atr.issueDate && (
+                    <span className="text-xs opacity-70">
+                      ({format(atr.issueDate, "dd/MM")})
+                    </span>
+                  )}
+                  <span className="text-xs opacity-70">• {blCount}</span>
+                  {atracaoList.length > 1 && blCount === 0 && (
+                    <Trash2
+                      className="w-3 h-3 ml-1 hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveAtracacao(atr.id);
+                      }}
+                    />
+                  )}
+                </Badge>
+              );
+            })}
+            <Button onClick={handleAddAtracacao} size="sm" variant="ghost" className="h-6 px-2 text-xs">
+              <Plus className="w-3 h-3 mr-1" />
+              Nova
+            </Button>
+          </div>
+
+          {/* BL cards */}
+          <ScrollArea className="w-full">
+            <div className="flex gap-2 pb-2">
+              {blList.map((bl, idx) => {
+                const atr = atracaoList.find(a => a.id === bl.atracaoId);
+                const status = getBLStatus(bl, atr);
+                const pendingCount = getPendingFields(bl, atr).length;
+                const isActive = idx === activeIndex;
+                
+                return (
+                  <div
+                    key={bl.id}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
+                      ${isActive 
+                        ? 'bg-primary text-primary-foreground border-primary' 
+                        : 'bg-card hover:bg-muted border-border'
+                      }
+                    `}
+                    onClick={() => setActiveIndex(idx)}
+                  >
+                    <span className="font-medium whitespace-nowrap">
+                      BL #{bl.blNumber || idx + 1}
+                    </span>
+                    <Badge 
+                      variant={status === 'complete' ? 'default' : 'secondary'}
+                      className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
+                    >
+                      {status === 'complete' ? '✓' : pendingCount}
+                    </Badge>
+                    {blList.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveBL(idx);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     )}
                   </div>
-                  <ScrollArea className="w-full">
-                    <div className="flex gap-2 pb-2">
-                      {bls.map(({ bl, idx }) => {
-                        const status = getBLStatus(bl, atracacao);
-                        const pendingCount = getPendingFields(bl, atracacao).length;
-                        const isActive = idx === activeIndex;
-                        
-                        return (
-                          <div
-                            key={bl.id}
-                            className={`
-                              flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
-                              ${isActive 
-                                ? 'bg-primary text-primary-foreground border-primary' 
-                                : 'bg-card hover:bg-muted border-border'
-                              }
-                            `}
-                            onClick={() => setActiveIndex(idx)}
-                          >
-                            <span className="font-medium whitespace-nowrap">
-                              BL #{bl.blNumber || idx + 1}
-                            </span>
-                            <Badge 
-                              variant={status === 'complete' ? 'default' : 'secondary'}
-                              className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
-                            >
-                              {status === 'complete' ? 'Completo' : `${pendingCount} pendente${pendingCount > 1 ? 's' : ''}`}
-                            </Badge>
-                            {blList.length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRemoveBL(idx);
-                                }}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                </div>
-              )
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
           
           {/* Navigation arrows */}
-          <div className="flex items-center justify-center gap-4 mt-4">
+          <div className="flex items-center justify-center gap-4">
             <Button
               variant="outline"
               size="sm"

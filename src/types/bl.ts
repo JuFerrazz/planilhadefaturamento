@@ -1,3 +1,9 @@
+export interface Atracacao {
+  id: string;
+  name: string;
+  issueDate: Date | null;
+}
+
 export interface BLData {
   id: string;
   // Shipper info
@@ -17,8 +23,8 @@ export interface BLData {
   // Weight and value
   grossWeight: number | null; // in metric tons
   
-  // Date info
-  issueDate: Date | null;
+  // Date info - now linked to atracacao
+  atracaoId: string;
   
   // BL number
   blNumber: string;
@@ -29,7 +35,7 @@ export interface BLFormProps {
   onChange: (data: BLData) => void;
 }
 
-export const createEmptyBL = (id: string): BLData => ({
+export const createEmptyBL = (id: string, atracaoId: string = '1'): BLData => ({
   id,
   shipperName: '',
   shipperCnpj: '',
@@ -40,8 +46,14 @@ export const createEmptyBL = (id: string): BLData => ({
   duE: '',
   ce: '',
   grossWeight: null,
-  issueDate: null,
+  atracaoId,
   blNumber: '1',
+});
+
+export const createEmptyAtracacao = (id: string, name: string): Atracacao => ({
+  id,
+  name,
+  issueDate: null,
 });
 
 export const formatCurrency = (value: number): string => {
@@ -88,7 +100,7 @@ export const calculateValue = (grossWeight: number | null): number => {
   return grossWeight * 30;
 };
 
-export const getBLStatus = (data: BLData): 'complete' | 'pending' => {
+export const getBLStatus = (data: BLData, atracacao?: Atracacao): 'complete' | 'pending' => {
   const requiredFields = [
     data.vessel,
     data.portOfLoading,
@@ -96,7 +108,7 @@ export const getBLStatus = (data: BLData): 'complete' | 'pending' => {
     data.shipperCnpj,
     data.cargoType,
     data.grossWeight,
-    data.issueDate,
+    atracacao?.issueDate,
   ];
   
   return requiredFields.every(field => field !== null && field !== '') 
@@ -104,7 +116,7 @@ export const getBLStatus = (data: BLData): 'complete' | 'pending' => {
     : 'pending';
 };
 
-export const getPendingFields = (data: BLData): string[] => {
+export const getPendingFields = (data: BLData, atracacao?: Atracacao): string[] => {
   const pending: string[] = [];
   
   if (!data.vessel) pending.push('Vessel');
@@ -113,7 +125,7 @@ export const getPendingFields = (data: BLData): string[] => {
   if (!data.shipperCnpj) pending.push('Shipper CNPJ');
   if (!data.cargoType) pending.push('Cargo Type');
   if (!data.grossWeight) pending.push('Gross Weight');
-  if (!data.issueDate) pending.push('Issue Date');
+  if (!atracacao?.issueDate) pending.push('Issue Date');
   if (!data.duE) pending.push('DU-E');
   if (!data.ce) pending.push('CE');
   if (!data.portOfDischarge) pending.push('Port of Discharge');

@@ -1,4 +1,4 @@
-import { BLData, calculateValue, formatCurrency } from '@/types/bl';
+import { BLData, Atracacao, calculateValue, formatCurrency } from '@/types/bl';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
@@ -24,9 +24,12 @@ const CARGO_OPTIONS = [
 interface BLFormProps {
   data: BLData;
   onChange: (data: BLData) => void;
+  atracacao?: Atracacao;
+  onAtracaoChange?: (atracacao: Atracacao) => void;
+  atracaoList?: Atracacao[];
 }
 
-export const BLForm = ({ data, onChange }: BLFormProps) => {
+export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList }: BLFormProps) => {
   const updateField = <K extends keyof BLData>(field: K, value: BLData[K]) => {
     onChange({ ...data, [field]: value });
   };
@@ -233,9 +236,9 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
       {/* Issue Date Section */}
       <div className="space-y-4">
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-          Place and Date of Issue
+          Place and Date of Issue (Atracação)
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Local de Emissão</Label>
             <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
@@ -245,25 +248,47 @@ export const BLForm = ({ data, onChange }: BLFormProps) => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Data de Emissão *</Label>
+            <Label>Atracação</Label>
+            <Select 
+              value={data.atracaoId} 
+              onValueChange={(value) => onChange({ ...data, atracaoId: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a atracação" />
+              </SelectTrigger>
+              <SelectContent>
+                {atracaoList?.map((atr) => (
+                  <SelectItem key={atr.id} value={atr.id}>
+                    {atr.name} {atr.issueDate ? `(${format(atr.issueDate, "dd/MM/yyyy")})` : '(sem data)'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Data da Atracação *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !data.issueDate && "text-muted-foreground"
+                    !atracacao?.issueDate && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {data.issueDate ? format(data.issueDate, "PPP", { locale: ptBR }) : "Selecionar data"}
+                  {atracacao?.issueDate ? format(atracacao.issueDate, "PPP", { locale: ptBR }) : "Selecionar data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={data.issueDate ?? undefined}
-                  onSelect={(date) => updateField('issueDate', date ?? null)}
+                  selected={atracacao?.issueDate ?? undefined}
+                  onSelect={(date) => {
+                    if (atracacao && onAtracaoChange) {
+                      onAtracaoChange({ ...atracacao, issueDate: date ?? null });
+                    }
+                  }}
                   initialFocus
                   className="pointer-events-auto"
                 />

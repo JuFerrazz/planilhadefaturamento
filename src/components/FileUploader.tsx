@@ -1,9 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Upload, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2, Sparkles } from 'lucide-react';
+import { Upload, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2, Sparkles, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { processExcelFile, generateExcelDownload, processPastedData, generateClipboardData, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
+import { findDespachanteEmail } from '@/lib/despachantesEmails';
 import { toast } from 'sonner';
 
 type UploadState = 'idle' | 'dragging' | 'processing' | 'success' | 'error';
@@ -126,6 +127,36 @@ export function FileUploader() {
       }
     }
   }, [processedData, shipName]);
+
+  const handleCopyEmails = useCallback(async (emails: string) => {
+    try {
+      await navigator.clipboard.writeText(emails);
+      toast.success('Emails copiados para a área de transferência!');
+    } catch {
+      toast.error('Erro ao copiar emails');
+    }
+  }, []);
+
+  // Função para extrair emails únicos dos despachantes
+  const getDespachanteEmails = useCallback(() => {
+    if (!processedData) return '';
+    
+    const uniqueBrokers = [...new Set(processedData.map(row => row['Customs Broker']).filter(Boolean))];
+    const emailsMap = new Map<string, string>();
+    
+    uniqueBrokers.forEach(broker => {
+      const email = findDespachanteEmail(broker);
+      if (email) {
+        emailsMap.set(broker, email);
+      }
+    });
+    
+    if (emailsMap.size === 0) return '';
+    
+    return Array.from(emailsMap.entries())
+      .map(([broker, email]) => `${broker}: ${email}`)
+      .join('\n\n');
+  }, [processedData]);
 
   const handleReset = useCallback(() => {
     setState('idle');
@@ -296,6 +327,30 @@ export function FileUploader() {
                 <Sparkles className="w-4 h-4" />
                 {processedData.length} registros processados
               </div>
+              
+              {/* Emails dos Despachantes */}
+              {getDespachanteEmails() && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-left max-w-2xl mx-auto">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      <h4 className="font-medium text-blue-900">Emails dos Despachantes</h4>
+                    </div>
+                    <Button
+                      onClick={() => handleCopyEmails(getDespachanteEmails())}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 text-blue-600 border-blue-300 hover:bg-blue-100"
+                    >
+                      <Copy className="w-3 h-3" />
+                      Copiar
+                    </Button>
+                  </div>
+                  <div className="text-sm text-blue-800 whitespace-pre-line font-mono bg-white p-3 rounded border">
+                    {getDespachanteEmails()}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -7,11 +7,20 @@ const REQUIRED_COLUMNS = [
   'Name of shipper',
   'Qtd per BL',
   'BL nbr',
-  'Qtd per DU-E',
+  'Qtd per DU-E', // Aceita tanto DU-E quanto DUE
   'CNPJ/VAT',
-  'DU-E',
+  'DU-E', // Aceita tanto DU-E quanto DUE
   'Customs broker'
 ];
+
+// Função para normalizar nomes de colunas (aceita DUE e DU-E)
+const normalizeColumnName = (columnName: string): string => {
+  const normalized = columnName.trim();
+  // Converte "DUE" para "DU-E" para padronizar
+  if (normalized === 'Qtd per DUE') return 'Qtd per DU-E';
+  if (normalized === 'DUE') return 'DU-E';
+  return normalized;
+};
 
 // Fixed unit value
 const VALOR_UNITARIO = 300;
@@ -41,7 +50,7 @@ export interface OutputRow {
 }
 
 export function validateColumns(headers: string[]): { valid: boolean; missing: string[] } {
-  const normalizedHeaders = headers.map(h => h?.trim());
+  const normalizedHeaders = headers.map(h => normalizeColumnName(h?.trim()));
   const missing = REQUIRED_COLUMNS.filter(col => !normalizedHeaders.includes(col));
   return {
     valid: missing.length === 0,
@@ -57,8 +66,9 @@ export function processPastedData(text: string): ProcessingResult {
       return { success: false, error: 'Dados insuficientes. Cole pelo menos o cabeçalho e uma linha de dados.' };
     }
 
-    // First line is headers
-    const headers = lines[0].split('\t').map(h => h.trim());
+    // First line is headers - normalize them
+    const originalHeaders = lines[0].split('\t').map(h => h.trim());
+    const headers = originalHeaders.map(h => normalizeColumnName(h));
     
     // Validate columns
     const validation = validateColumns(headers);
@@ -70,7 +80,7 @@ export function processPastedData(text: string): ProcessingResult {
       };
     }
 
-    // Parse data rows
+    // Parse data rows using normalized headers
     const jsonData: Record<string, any>[] = [];
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split('\t');
@@ -283,11 +293,11 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
           return;
         }
 
-        // Normalize the data by trimming column names and values
+        // Normalize the data by trimming column names and applying header normalization
         const jsonData = rawData.map(row => {
           const normalizedRow: Record<string, any> = {};
           for (const key of Object.keys(row)) {
-            const normalizedKey = key.trim();
+            const normalizedKey = normalizeColumnName(key.trim());
             normalizedRow[normalizedKey] = row[key];
           }
           return normalizedRow;

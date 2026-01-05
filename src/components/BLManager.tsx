@@ -21,6 +21,9 @@ export const BLManager = () => {
 
   const activeBL = blList[activeIndex];
   const activeAtracacao = atracaoList.find(a => a.id === activeBL.atracaoId);
+  
+  // Verifica se o BL atual é o primeiro da sua atracação
+  const isFirstOfAtracacao = blList.findIndex(bl => bl.atracaoId === activeBL.atracaoId) === activeIndex;
 
   // Keyboard shortcut for print
   useEffect(() => {
@@ -329,6 +332,7 @@ export const BLManager = () => {
                 atracacao={activeAtracacao}
                 onAtracaoChange={handleUpdateAtracacao}
                 atracaoList={atracaoList}
+                isFirstOfAtracacao={isFirstOfAtracacao}
               />
             </CardContent>
           </Card>

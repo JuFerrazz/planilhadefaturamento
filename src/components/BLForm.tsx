@@ -27,9 +27,10 @@ interface BLFormProps {
   atracacao?: Atracacao;
   onAtracaoChange?: (atracacao: Atracacao) => void;
   atracaoList?: Atracacao[];
+  isFirstOfAtracacao?: boolean;
 }
 
-export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList }: BLFormProps) => {
+export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList, isFirstOfAtracacao = false }: BLFormProps) => {
   const updateField = <K extends keyof BLData>(field: K, value: BLData[K]) => {
     onChange({ ...data, [field]: value });
   };
@@ -46,8 +47,9 @@ export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList
 
   const calculatedValue = calculateValue(data.grossWeight);
   
-  // Verifica se é o primeiro BL (editável) ou não
+  // Verifica se é o primeiro BL global (editável vessel/ports) 
   const isFirstBL = data.blNumber === '1';
+  // isFirstOfAtracacao controla se pode editar a data da atracação
 
   return (
     <div className="space-y-6">
@@ -266,34 +268,50 @@ export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Data da Atracação *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !atracacao?.issueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {atracacao?.issueDate ? format(atracacao.issueDate, "PPP", { locale: ptBR }) : "Selecionar data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={atracacao?.issueDate ?? undefined}
-                  onSelect={(date) => {
-                    if (atracacao && onAtracaoChange) {
-                      onAtracaoChange({ ...atracacao, issueDate: date ?? null });
-                    }
-                  }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2">
+              <Label>Data da Atracação *</Label>
+              {!isFirstOfAtracacao && (
+                <span className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+                  Edite no 1º BL desta atracação
+                </span>
+              )}
+            </div>
+            {isFirstOfAtracacao ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !atracacao?.issueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {atracacao?.issueDate ? format(atracacao.issueDate, "PPP", { locale: ptBR }) : "Selecionar data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={atracacao?.issueDate ?? undefined}
+                    onSelect={(date) => {
+                      if (atracacao && onAtracaoChange) {
+                        onAtracaoChange({ ...atracacao, issueDate: date ?? null });
+                      }
+                    }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
+                <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span className="text-foreground">
+                  {atracacao?.issueDate ? format(atracacao.issueDate, "PPP", { locale: ptBR }) : "Sem data"}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

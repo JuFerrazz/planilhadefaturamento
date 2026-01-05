@@ -1,17 +1,18 @@
-import { BLData, formatCurrency, formatWeight, formatDate, calculateValue, getPendingFields } from '@/types/bl';
+import { BLData, Atracacao, formatCurrency, formatWeight, formatDate, calculateValue, getPendingFields } from '@/types/bl';
 import { AlertCircle } from 'lucide-react';
 
 interface BLPreviewProps {
   data: BLData;
+  atracacao?: Atracacao;
 }
 
-export const BLPreview = ({ data }: BLPreviewProps) => {
-  const pendingFields = getPendingFields(data);
+export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
+  const pendingFields = getPendingFields(data, atracacao);
   const calculatedValue = calculateValue(data.grossWeight);
   
   const issuePlace = data.portOfLoading || 'SANTOS';
-  const issueDateFormatted = data.issueDate 
-    ? formatDate(data.issueDate)
+  const issueDateFormatted = atracacao?.issueDate 
+    ? formatDate(atracacao.issueDate)
     : 'DECEMBER XXth, 2025';
 
   // Format gross weight display

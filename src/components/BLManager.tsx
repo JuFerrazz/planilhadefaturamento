@@ -85,12 +85,13 @@ export const BLManager = () => {
     const newBL = createEmptyBL(newId, activeBL.atracaoId);
     newBL.blNumber = newId;
     
-    // Copia informações de Vessel & Ports do primeiro BL
+    // Copia informações globais do primeiro BL
     if (blList.length > 0) {
       const firstBL = blList[0];
       newBL.vessel = firstBL.vessel;
       newBL.portOfLoading = firstBL.portOfLoading;
       newBL.portOfDischarge = firstBL.portOfDischarge;
+      newBL.cargoType = firstBL.cargoType;
     }
     
     setBlList([...blList, newBL]);
@@ -130,12 +131,15 @@ export const BLManager = () => {
     const newList = [...blList];
     newList[activeIndex] = data;
     
-    // Se estamos editando o BL #1, propaga as mudanças de Vessel & Ports para todos os outros
+    // Se estamos editando o BL #1, propaga as mudanças globais para todos os outros
     if (data.blNumber === '1') {
       for (let i = 1; i < newList.length; i++) {
+        // Vessel & Ports (global)
         newList[i].vessel = data.vessel;
         newList[i].portOfLoading = data.portOfLoading;
         newList[i].portOfDischarge = data.portOfDischarge;
+        // Tipo de carga (global)
+        newList[i].cargoType = data.cargoType;
       }
     }
     

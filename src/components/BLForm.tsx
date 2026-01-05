@@ -163,24 +163,39 @@ export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList
 
       {/* Cargo Section */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-          Shipper's Description of Goods
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+            Shipper's Description of Goods
+          </h3>
+          {!isFirstBL && (
+            <span className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
+              Copiado do BL #1
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label htmlFor="cargoType">Tipo de Carga *</Label>
-            <Select value={data.cargoType} onValueChange={(value) => updateField('cargoType', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de carga" />
-              </SelectTrigger>
-              <SelectContent>
-                {CARGO_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isFirstBL ? (
+              <Select value={data.cargoType} onValueChange={(value) => updateField('cargoType', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de carga" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CARGO_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="h-10 px-3 py-2 rounded-md border border-input bg-muted flex items-center">
+                <span className="text-foreground">
+                  {data.cargoType ? CARGO_OPTIONS.find(opt => opt.value === data.cargoType)?.label || data.cargoType : '[TIPO DE CARGA]'}
+                </span>
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">

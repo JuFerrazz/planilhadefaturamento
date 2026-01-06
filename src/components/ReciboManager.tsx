@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, FileText, Loader2, Printer, Ship, Calendar, MapPin, Package, Trash2 } from 'lucide-react';
+import { Upload, FileText, Loader2, Printer, Ship, Calendar, MapPin, Package, Trash2, ClipboardPaste, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { parseCargoManifest, groupByShipper } from '@/lib/cargoManifestParser';
-import { parseSugarExcel, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
+import { parsePastedData, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
 import { GrainRecibo } from './GrainRecibo';
 import { SugarRecibo } from './SugarRecibo';
 import { CargoManifestData } from '@/types/recibo';
@@ -39,16 +40,17 @@ export function ReciboManager() {
   const [grainManifestData, setGrainManifestData] = useState<CargoManifestData | null>(null);
   const [grainRecibos, setGrainRecibos] = useState<GrainReciboData[]>([]);
   const [grainProcessing, setGrainProcessing] = useState(false);
+  const [showGrainPreview, setShowGrainPreview] = useState(false);
   
   // Sugar state
   const [sugarDate, setSugarDate] = useState<Date | undefined>(new Date());
   const [sugarVessel, setSugarVessel] = useState('');
   const [sugarPort, setSugarPort] = useState('');
   const [sugarRecibos, setSugarRecibos] = useState<SugarReciboGroupData[]>([]);
-  const [sugarProcessing, setSugarProcessing] = useState(false);
+  const [sugarPastedText, setSugarPastedText] = useState('');
+  const [showSugarPreview, setShowSugarPreview] = useState(false);
   
   const grainFileInputRef = useRef<HTMLInputElement>(null);
-  const sugarFileInputRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Handle Cargo Manifest PDF upload
@@ -59,6 +61,7 @@ export function ReciboManager() {
     }
 
     setGrainProcessing(true);
+    setShowGrainPreview(false);
     
     try {
       const data = await parseCargoManifest(file);
@@ -93,44 +96,36 @@ export function ReciboManager() {
     setGrainProcessing(false);
   }, []);
 
-  // Handle Sugar Excel upload
-  const handleSugarFileUpload = useCallback(async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.xlsx') && !file.name.toLowerCase().endsWith('.xls')) {
-      toast.error('Por favor, selecione um arquivo Excel (.xlsx ou .xls)');
+  // Handle Sugar pasted data
+  const handleSugarPaste = useCallback(() => {
+    if (!sugarPastedText.trim()) {
+      toast.error('Cole os dados da planilha primeiro');
       return;
     }
-
-    setSugarProcessing(true);
     
-    try {
-      const data = await parseSugarExcel(file);
-      
-      if (!data || data.entries.length === 0) {
-        toast.error('Não foi possível extrair dados da planilha');
-        setSugarProcessing(false);
-        return;
-      }
-      
-      // Group by customs broker
-      const grouped = groupByCustomsBroker(data.entries);
-      const recibos: SugarReciboGroupData[] = [];
-      
-      grouped.forEach((entries, customsBroker) => {
-        recibos.push({
-          customsBroker,
-          entries
-        });
-      });
-      
-      setSugarRecibos(recibos);
-      toast.success(`${recibos.length} recibos gerados para ${data.entries.length} BLs`);
-    } catch (error) {
-      console.error('Error processing sugar excel:', error);
-      toast.error('Erro ao processar a planilha');
+    setShowSugarPreview(false);
+    
+    const data = parsePastedData(sugarPastedText);
+    
+    if (!data || data.entries.length === 0) {
+      toast.error('Não foi possível extrair dados. Verifique se as colunas estão corretas: BL nbr, Name of shipper, Qtd per BL, Customs broker');
+      return;
     }
     
-    setSugarProcessing(false);
-  }, []);
+    // Group by customs broker
+    const grouped = groupByCustomsBroker(data.entries);
+    const recibos: SugarReciboGroupData[] = [];
+    
+    grouped.forEach((entries, customsBroker) => {
+      recibos.push({
+        customsBroker,
+        entries
+      });
+    });
+    
+    setSugarRecibos(recibos);
+    toast.success(`${recibos.length} recibos gerados para ${data.entries.length} BLs`);
+  }, [sugarPastedText]);
 
   const handlePrintAll = useCallback(() => {
     window.print();
@@ -142,13 +137,15 @@ export function ReciboManager() {
       setGrainRecibos([]);
       setGrainDate(new Date());
       setGrainCargo('SBS');
+      setShowGrainPreview(false);
       if (grainFileInputRef.current) grainFileInputRef.current.value = '';
     } else {
       setSugarRecibos([]);
       setSugarDate(new Date());
       setSugarVessel('');
       setSugarPort('');
-      if (sugarFileInputRef.current) sugarFileInputRef.current.value = '';
+      setSugarPastedText('');
+      setShowSugarPreview(false);
     }
   }, []);
 
@@ -270,9 +267,13 @@ export function ReciboManager() {
               {/* Actions */}
               {grainRecibos.length > 0 && (
                 <div className="flex gap-3 justify-center">
+                  <Button onClick={() => setShowGrainPreview(true)} variant="outline" className="gap-2">
+                    <Eye className="w-4 h-4" />
+                    Preview ({grainRecibos.length})
+                  </Button>
                   <Button onClick={handlePrintAll} className="gap-2">
                     <Printer className="w-4 h-4" />
-                    Imprimir Todos ({grainRecibos.length})
+                    Imprimir Todos
                   </Button>
                   <Button variant="outline" onClick={() => handleReset('grain')} className="gap-2">
                     <Trash2 className="w-4 h-4" />
@@ -284,7 +285,7 @@ export function ReciboManager() {
           </Card>
 
           {/* Grain Recibos Preview */}
-          {grainRecibos.length > 0 && grainManifestData && (
+          {grainRecibos.length > 0 && grainManifestData && showGrainPreview && (
             <div ref={printRef} className="space-y-8 print:space-y-0">
               {grainRecibos.map((recibo, idx) => (
                 <div key={idx} className="print:break-after-page">
@@ -362,45 +363,34 @@ export function ReciboManager() {
                 </div>
               </div>
 
-              {/* File Upload */}
+              {/* Paste Area */}
               <div className="space-y-2">
-                <Label>Carregar Planilha de Faturamento (Excel)</Label>
-                <div 
-                  className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
-                  onClick={() => sugarFileInputRef.current?.click()}
-                >
-                  <input
-                    ref={sugarFileInputRef}
-                    type="file"
-                    accept=".xlsx,.xls"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleSugarFileUpload(file);
-                    }}
-                  />
-                  {sugarProcessing ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      <span className="text-sm text-muted-foreground">Processando...</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Clique ou arraste a planilha de faturamento
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <Label className="flex items-center gap-2">
+                  <ClipboardPaste className="w-4 h-4" />
+                  Colar Planilha (BL nbr, Name of shipper, Qtd per BL, Customs broker)
+                </Label>
+                <Textarea
+                  value={sugarPastedText}
+                  onChange={(e) => setSugarPastedText(e.target.value)}
+                  placeholder="Cole aqui os dados da planilha (copie as colunas BL nbr, Name of shipper, Qtd per BL e Customs broker do Excel)..."
+                  className="min-h-[120px] font-mono text-sm"
+                />
+                <Button onClick={handleSugarPaste} className="gap-2 w-full">
+                  <ClipboardPaste className="w-4 h-4" />
+                  Processar Dados Colados
+                </Button>
               </div>
 
               {/* Actions */}
               {sugarRecibos.length > 0 && (
                 <div className="flex gap-3 justify-center">
+                  <Button onClick={() => setShowSugarPreview(true)} variant="outline" className="gap-2">
+                    <Eye className="w-4 h-4" />
+                    Preview ({sugarRecibos.length})
+                  </Button>
                   <Button onClick={handlePrintAll} className="gap-2">
                     <Printer className="w-4 h-4" />
-                    Imprimir Todos ({sugarRecibos.length})
+                    Imprimir Todos
                   </Button>
                   <Button variant="outline" onClick={() => handleReset('sugar')} className="gap-2">
                     <Trash2 className="w-4 h-4" />
@@ -412,7 +402,7 @@ export function ReciboManager() {
           </Card>
 
           {/* Sugar Recibos Preview */}
-          {sugarRecibos.length > 0 && (
+          {sugarRecibos.length > 0 && showSugarPreview && (
             <div className="space-y-8 print:space-y-0">
               {sugarRecibos.map((recibo, idx) => (
                 <div key={idx} className="print:break-after-page">

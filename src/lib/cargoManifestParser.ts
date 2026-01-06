@@ -39,42 +39,55 @@ export const parseCargoManifest = async (file: File): Promise<CargoManifestData 
     
     console.log('Cargo Manifest PDF Text:', fullText);
     
-    // Extract VESSEL
-    const vesselMatch = fullText.match(/VESSEL[:\s]*(?:MV\s+)?([A-Z][A-Z\s]+?)(?=\s+MASTER|\s+PORT|\n)/i);
-    const vessel = vesselMatch ? vesselMatch[1].trim() : '';
+    // Extract VESSEL - look for "VESSEL:" or "VESSEL" followed by MV
+    let vessel = '';
+    const vesselMatch = fullText.match(/VESSEL\s*:?\s*(?:MV\s+)?([A-Z][A-Z\s\-]+?)(?=\s+MASTER|\s+PORT|\s+DATE|\n|$)/i);
+    if (vesselMatch) {
+      vessel = vesselMatch[1].trim();
+    }
     
     // Extract PORT OF LOADING
-    const portMatch = fullText.match(/PORT\s+OF\s+LOADING[:\s]*([A-Z][A-Z\s,]+?)(?=\s+DATE|\s+PORT\s+OF\s+DISCHARGE|\n)/i);
-    const port = portMatch ? portMatch[1].trim() : '';
+    let port = '';
+    const portMatch = fullText.match(/PORT\s+OF\s+LOADING\s*:?\s*([A-Z][A-Z\s,\-]+?)(?=\s+DATE|\s+PORT\s+OF\s+DISCHARGE|\s+BRAZIL|\n|$)/i);
+    if (portMatch) {
+      port = portMatch[1].trim();
+      // Clean up port name
+      port = port.replace(/,?\s*BRAZIL\s*$/i, '').trim();
+    }
     
-    // Extract BL entries
+    // Extract BL entries - pattern: B/L No. XX followed by SHIPPER NAME
     const entries: ReciboBLEntry[] = [];
     
-    // Pattern to match BL entries: B/L No. XX followed by shipper name and quantity
-    // The format is: B/L No. 01 | SHIPPER NAME | ... | XX,XXX.XXX METRIC TONS
-    const blPattern = /B\/L\s*(?:No\.?\s*)?(\d+)\s+([A-Z][A-Z\s\.\/\-&]+?)(?=\s+TO\s+ORDER|\s+CONSIGNEE)/gi;
-    const quantityPattern = /(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*METRIC\s*TONS/gi;
+    // Match pattern: B/L No. XX SHIPPER_NAME ... XX,XXX.XXX METRIC TONS
+    const blRegex = /B\/L\s*No\.?\s*(\d+)\s+([A-Z][A-Z\s\.\/\-&]+?)(?=\s+TO\s+ORDER|\s+CONSIGNEE)/gi;
+    let match;
     
-    // Split by B/L entries
-    const blSections = fullText.split(/(?=B\/L\s*(?:No\.?\s*)?\d+)/gi);
+    // Store all matches with their positions
+    const blMatches: { blNumber: string; shipper: string; position: number }[] = [];
+    while ((match = blRegex.exec(fullText)) !== null) {
+      blMatches.push({
+        blNumber: match[1],
+        shipper: match[2].trim().replace(/\s+/g, ' '),
+        position: match.index
+      });
+    }
     
-    for (const section of blSections) {
-      const blMatch = section.match(/B\/L\s*(?:No\.?\s*)?(\d+)\s+([A-Z][A-Z\s\.\/\-&]+?)(?=\s+TO\s+ORDER|\s+CONSIGNEE)/i);
+    // For each BL, find the quantity that follows
+    for (let i = 0; i < blMatches.length; i++) {
+      const bl = blMatches[i];
+      const nextBlPos = i + 1 < blMatches.length ? blMatches[i + 1].position : fullText.length;
+      const section = fullText.substring(bl.position, nextBlPos);
+      
+      // Find quantity in this section
       const qtyMatch = section.match(/(\d{1,3}(?:,\d{3})*(?:\.\d+)?)\s*METRIC\s*TONS/i);
       
-      if (blMatch && qtyMatch) {
-        const blNumber = blMatch[1];
-        let shipper = blMatch[2].trim();
-        // Clean up shipper name
-        shipper = shipper.replace(/\s+/g, ' ').trim();
-        
-        // Parse quantity - remove commas and parse
+      if (qtyMatch) {
         const quantityStr = qtyMatch[1].replace(/,/g, '');
         const quantity = parseFloat(quantityStr);
         
         entries.push({
-          blNumber,
-          shipper,
+          blNumber: bl.blNumber,
+          shipper: bl.shipper,
           quantity
         });
       }

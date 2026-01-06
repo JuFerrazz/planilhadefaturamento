@@ -150,7 +150,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 0;
+    margin: 8mm;
   }
   
   body {
@@ -201,17 +201,24 @@
     border: none !important;
   }
   
-  /* Recibo styles - ocupar folha toda */
+  /* Recibo styles - ocupar folha toda com margens consistentes */
   .bg-white {
-    width: 100vw !important;
+    width: 100% !important;
     max-width: none !important;
-    height: 100vh !important;
+    height: auto !important;
+    min-height: calc(100vh - 16mm) !important;
     margin: 0 !important;
-    padding: 8mm !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Garantir que cada recibo ocupe uma página completa */
+  .print\\:break-after-page:not(:last-child) {
+    page-break-after: always !important;
   }
 }
 

@@ -28,7 +28,7 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
   return (
     <div 
       ref={ref}
-      className="bg-white p-8 max-w-[210mm] mx-auto min-h-screen flex flex-col justify-between"
+      className="bg-white p-6 max-w-[210mm] mx-auto min-h-screen flex flex-col justify-between"
       style={{ 
         fontFamily: "'Century Gothic', 'CenturyGothic', 'AppleGothic', sans-serif",
         fontSize: '10pt',

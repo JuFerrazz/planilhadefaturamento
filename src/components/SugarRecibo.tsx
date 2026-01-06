@@ -52,7 +52,7 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
         <h1 className="text-center text-2xl font-bold my-8">RECIBO</h1>
 
         {/* Main text */}
-        <p className="mb-12 text-justify text-[14pt] leading-relaxed">
+        <p className="mb-12 text-justify text-[12pt] leading-relaxed">
           Recebi de ROCHAMAR AGÊNCIA MARÍTIMA S.A., 1ª/2ª/3ª vias Originais e 5 cópias não negociáveis, 
           dos Bs/L abaixo relacionados, referente ao MV {vessel} – SUGAR, com embarque no 
           porto de {port}.
@@ -62,19 +62,19 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
         <table className="w-full border-collapse mb-16">
           <thead>
             <tr className="border-b-2 border-black">
-              <th className="text-left py-4 font-bold text-[14pt]">B/L nbr</th>
-              <th className="text-left py-4 font-bold text-[14pt]">SHIPPER</th>
-              <th className="text-right py-4 font-bold text-[14pt]">QUANTITY</th>
-              <th className="text-center py-4 font-bold text-[14pt]">CUSTOMS BROKER</th>
+              <th className="text-left py-4 font-bold text-[11pt]">B/L nbr</th>
+              <th className="text-left py-4 font-bold text-[11pt]">SHIPPER</th>
+              <th className="text-right py-4 font-bold text-[11pt]">QUANTITY</th>
+              <th className="text-center py-4 font-bold text-[11pt]">CUSTOMS BROKER</th>
             </tr>
           </thead>
           <tbody>
             {entries.map((entry, idx) => (
               <tr key={idx} className="border-b border-gray-300">
-                <td className="py-4 text-[12pt]">{entry.blNumber}</td>
-                <td className="py-4 text-[12pt]">{entry.shipper}</td>
-                <td className="py-4 text-right text-[12pt]">{formatQuantity(entry.quantity)}</td>
-                <td className="py-4 text-center text-[12pt]">{customsBroker}</td>
+                <td className="py-4 text-[10pt]">{entry.blNumber}</td>
+                <td className="py-4 text-[10pt]">{entry.shipper}</td>
+                <td className="py-4 text-right text-[10pt]">{formatQuantity(entry.quantity)}</td>
+                <td className="py-4 text-center text-[10pt]">{customsBroker}</td>
               </tr>
             ))}
           </tbody>
@@ -82,7 +82,7 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
       </div>
 
       {/* Signature section */}
-      <div className="space-y-8 text-[12pt]">
+      <div className="space-y-8 text-[10pt]">
         <div className="grid grid-cols-1 gap-6">
           <div>
             <span>Empresa: </span>
@@ -123,7 +123,7 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
         </div>
 
         {/* Footer */}
-        <div className="mt-12 text-[11pt] text-gray-600">
+        <div className="mt-12 text-[9pt] text-gray-600">
           <p>Av. Ana Costa, nº 433, 9º and., cjs. 91/91/95/96</p>
           <p>Edifício Parque Ana Costa</p>
           <p>Tel: 13-3328 9500</p>

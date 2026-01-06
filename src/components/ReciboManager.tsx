@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, FileText, Loader2, Printer, Ship, Calendar, MapPin, Package, Trash2, ClipboardPaste, Eye } from 'lucide-react';
+import { Upload, FileText, Loader2, Printer, Ship, Calendar, MapPin, Package, Trash2, ClipboardPaste, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,7 @@ export function ReciboManager() {
   const [grainRecibos, setGrainRecibos] = useState<GrainReciboData[]>([]);
   const [grainProcessing, setGrainProcessing] = useState(false);
   const [showGrainPreview, setShowGrainPreview] = useState(false);
+  const [currentGrainIndex, setCurrentGrainIndex] = useState(0);
   
   // Sugar state
   const [sugarDate, setSugarDate] = useState<Date | undefined>(new Date());
@@ -49,6 +50,7 @@ export function ReciboManager() {
   const [sugarRecibos, setSugarRecibos] = useState<SugarReciboGroupData[]>([]);
   const [sugarPastedText, setSugarPastedText] = useState('');
   const [showSugarPreview, setShowSugarPreview] = useState(false);
+  const [currentSugarIndex, setCurrentSugarIndex] = useState(0);
   
   const grainFileInputRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
@@ -138,6 +140,7 @@ export function ReciboManager() {
       setGrainDate(new Date());
       setGrainCargo('SBS');
       setShowGrainPreview(false);
+      setCurrentGrainIndex(0);
       if (grainFileInputRef.current) grainFileInputRef.current.value = '';
     } else {
       setSugarRecibos([]);
@@ -146,8 +149,26 @@ export function ReciboManager() {
       setSugarPort('');
       setSugarPastedText('');
       setShowSugarPreview(false);
+      setCurrentSugarIndex(0);
     }
   }, []);
+
+  // Carousel navigation functions
+  const nextGrainRecibo = useCallback(() => {
+    setCurrentGrainIndex(prev => (prev + 1) % grainRecibos.length);
+  }, [grainRecibos.length]);
+
+  const prevGrainRecibo = useCallback(() => {
+    setCurrentGrainIndex(prev => (prev - 1 + grainRecibos.length) % grainRecibos.length);
+  }, [grainRecibos.length]);
+
+  const nextSugarRecibo = useCallback(() => {
+    setCurrentSugarIndex(prev => (prev + 1) % sugarRecibos.length);
+  }, [sugarRecibos.length]);
+
+  const prevSugarRecibo = useCallback(() => {
+    setCurrentSugarIndex(prev => (prev - 1 + sugarRecibos.length) % sugarRecibos.length);
+  }, [sugarRecibos.length]);
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -286,7 +307,52 @@ export function ReciboManager() {
 
           {/* Grain Recibos Preview */}
           {grainRecibos.length > 0 && grainManifestData && showGrainPreview && (
-            <div ref={printRef} className="space-y-8 print:space-y-0">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Preview dos Recibos</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevGrainRecibo}
+                      disabled={grainRecibos.length <= 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {currentGrainIndex + 1} de {grainRecibos.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextGrainRecibo}
+                      disabled={grainRecibos.length <= 1}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg overflow-hidden">
+                  <GrainRecibo
+                    date={grainDate ? format(grainDate, 'dd/MM/yyyy') : ''}
+                    vessel={grainManifestData.vessel}
+                    cargo={grainCargo}
+                    port={grainManifestData.port}
+                    shipper={grainRecibos[currentGrainIndex].shipper}
+                    blNumbers={grainRecibos[currentGrainIndex].blNumbers}
+                    quantity={grainRecibos[currentGrainIndex].quantity}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Hidden recibos for printing */}
+          {grainRecibos.length > 0 && grainManifestData && (
+            <div ref={printRef} className="hidden print:block print:space-y-0">
               {grainRecibos.map((recibo, idx) => (
                 <div key={idx} className="print:break-after-page">
                   <GrainRecibo
@@ -403,7 +469,50 @@ export function ReciboManager() {
 
           {/* Sugar Recibos Preview */}
           {sugarRecibos.length > 0 && showSugarPreview && (
-            <div className="space-y-8 print:space-y-0">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Preview dos Recibos</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevSugarRecibo}
+                      disabled={sugarRecibos.length <= 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {currentSugarIndex + 1} de {sugarRecibos.length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextSugarRecibo}
+                      disabled={sugarRecibos.length <= 1}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg overflow-hidden">
+                  <SugarRecibo
+                    date={sugarDate ? format(sugarDate, 'dd/MM/yyyy') : ''}
+                    vessel={sugarVessel}
+                    port={sugarPort}
+                    customsBroker={sugarRecibos[currentSugarIndex].customsBroker}
+                    entries={sugarRecibos[currentSugarIndex].entries}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Hidden recibos for printing */}
+          {sugarRecibos.length > 0 && (
+            <div className="hidden print:block print:space-y-0">
               {sugarRecibos.map((recibo, idx) => (
                 <div key={idx} className="print:break-after-page">
                   <SugarRecibo

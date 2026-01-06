@@ -258,6 +258,19 @@ export function ReciboManager() {
                 <div 
                   className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
                   onClick={() => grainFileInputRef.current?.click()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files[0];
+                    if (file) handleGrainFileUpload(file);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add('border-primary');
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('border-primary');
+                  }}
                 >
                   <input
                     ref={grainFileInputRef}

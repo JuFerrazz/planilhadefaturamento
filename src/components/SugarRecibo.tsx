@@ -43,7 +43,7 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
             alt="Agri Port Services Brasil" 
             className="h-16 object-contain"
           />
-          <div className="text-right text-[12pt] font-bold">
+          <div className="text-right text-[12pt] font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
             DATA: {date}
           </div>
         </div>
@@ -52,29 +52,29 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
         <h1 className="text-center text-2xl font-bold my-8">RECIBO</h1>
 
         {/* Main text */}
-        <p className="mb-12 text-justify text-[12pt] leading-relaxed">
+        <p className="mb-8 text-justify text-[12pt] leading-relaxed">
           Recebi de ROCHAMAR AGÊNCIA MARÍTIMA S.A., 1ª/2ª/3ª vias Originais e 5 cópias não negociáveis, 
           dos Bs/L abaixo relacionados, referente ao <span className="font-bold">MV {vessel} – SUGAR</span>, com embarque no 
           porto de <span className="font-bold">{port}</span>.
         </p>
 
         {/* Table - each entry separate, no summing */}
-        <table className="w-full border-collapse mb-16">
+        <table className="w-full border-collapse mb-12" style={{ fontFamily: 'Arial, sans-serif' }}>
           <thead>
             <tr className="border-b-2 border-black">
-              <th className="text-left py-4 font-bold text-[10pt]">B/L nbr</th>
-              <th className="text-left py-4 font-bold text-[10pt]">SHIPPER</th>
-              <th className="text-right py-4 font-bold text-[10pt]">QUANTITY</th>
-              <th className="text-center py-4 font-bold text-[10pt]">CUSTOMS BROKER</th>
+              <th className="text-left py-3 font-bold text-[10pt]">B/L nbr</th>
+              <th className="text-left py-3 font-bold text-[10pt]">SHIPPER</th>
+              <th className="text-right py-3 font-bold text-[10pt]">QUANTITY</th>
+              <th className="text-center py-3 font-bold text-[10pt]">CUSTOMS BROKER</th>
             </tr>
           </thead>
           <tbody>
             {entries.map((entry, idx) => (
               <tr key={idx} className="border-b border-gray-300">
-                <td className="py-4 text-[10pt]">{entry.blNumber}</td>
-                <td className="py-4 text-[10pt]">{entry.shipper}</td>
-                <td className="py-4 text-right text-[10pt]">{formatQuantity(entry.quantity)}</td>
-                <td className="py-4 text-center text-[10pt]">{customsBroker}</td>
+                <td className="py-3 text-[10pt]">{entry.blNumber}</td>
+                <td className="py-3 text-[10pt]">{entry.shipper}</td>
+                <td className="py-3 text-right text-[10pt]">{formatQuantity(entry.quantity)}</td>
+                <td className="py-3 text-center text-[10pt]">{customsBroker}</td>
               </tr>
             ))}
           </tbody>
@@ -82,8 +82,8 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
       </div>
 
       {/* Signature section */}
-      <div className="space-y-8 text-[10pt]">
-        <div className="grid grid-cols-1 gap-6">
+      <div className="space-y-6 text-[10pt]">
+        <div className="grid grid-cols-1 gap-4">
           <div>
             <span>Empresa: </span>
             <span className="inline-block border-b border-black w-96"></span>
@@ -116,14 +116,14 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
             <span className="inline-block border-b border-black w-96"></span>
           </div>
           
-          <div className="mt-8">
+          <div className="mt-6">
             <span>Assinatura: </span>
             <span className="inline-block border-b border-black w-96"></span>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-12 text-[9pt] text-gray-600">
+        <div className="mt-8 text-[9pt] text-gray-600">
           <p>Av. Ana Costa, nº 433, 9º and., cjs. 91/91/95/96</p>
           <p>Edifício Parque Ana Costa</p>
           <p>Tel: 13-3328 9500</p>

@@ -291,7 +291,7 @@ export function ReciboManager() {
                     <div className="flex flex-col items-center gap-2">
                       <Upload className="w-8 h-8 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
-                        Clique ou arraste o arquivo Cargo Manifest (PDF)
+                        Clique ou arraste o arquivo Cargo Manifest (PDF) aqui
                       </span>
                     </div>
                   )}

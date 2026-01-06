@@ -65,6 +65,7 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
               <th className="text-left py-4 font-bold text-[14pt]">B/L nbr</th>
               <th className="text-left py-4 font-bold text-[14pt]">SHIPPER</th>
               <th className="text-right py-4 font-bold text-[14pt]">QUANTITY</th>
+              <th className="text-center py-4 font-bold text-[14pt]">CUSTOMS BROKER</th>
             </tr>
           </thead>
           <tbody>
@@ -73,13 +74,9 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
                 <td className="py-4 text-[12pt]">{entry.blNumber}</td>
                 <td className="py-4 text-[12pt]">{entry.shipper}</td>
                 <td className="py-4 text-right text-[12pt]">{formatQuantity(entry.quantity)}</td>
+                <td className="py-4 text-center text-[12pt]">{customsBroker}</td>
               </tr>
             ))}
-            {/* Custom Broker row */}
-            <tr className="border-t-2 border-black">
-              <td className="py-4 font-bold text-[12pt]" colSpan={2}>DESPACHANTE:</td>
-              <td className="py-4 text-right font-bold text-[12pt]">{customsBroker}</td>
-            </tr>
           </tbody>
         </table>
       </div>

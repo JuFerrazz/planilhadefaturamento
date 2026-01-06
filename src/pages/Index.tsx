@@ -70,6 +70,7 @@ const Index = () => {
             <section className="text-center animate-fade-in print:hidden">
               <h2 className="text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Bill of Lading - CONGENBILL
+                  </h2>
             </section>
 
             {/* BL Manager */}

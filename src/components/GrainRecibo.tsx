@@ -46,95 +46,97 @@ export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({
   return (
     <div 
       ref={ref}
-      className="bg-white p-8 max-w-[210mm] mx-auto"
+      className="bg-white p-8 max-w-[210mm] mx-auto min-h-screen flex flex-col justify-between"
       style={{ 
         fontFamily: "'Century Gothic', 'CenturyGothic', 'AppleGothic', sans-serif",
         fontSize: '10pt',
         lineHeight: '1.4'
       }}
     >
-      {/* Header with logo */}
-      <div className="flex justify-between items-start mb-2">
-        <img 
-          src={agriPortLogo} 
-          alt="Agri Port Services Brasil" 
-          className="h-12 object-contain"
-        />
-        <div className="text-right text-[10pt]">
-          DATA: {date}
+      <div className="flex-1">
+        {/* Header with logo */}
+        <div className="flex justify-between items-start mb-6">
+          <img 
+            src={agriPortLogo} 
+            alt="Agri Port Services Brasil" 
+            className="h-16 object-contain"
+          />
+          <div className="text-right text-[12pt] font-bold">
+            DATA: {date}
+          </div>
         </div>
+
+        {/* Title */}
+        <h1 className="text-center text-2xl font-bold my-8">RECIBO</h1>
+
+        {/* Main text */}
+        <p className="mb-8 text-justify text-[12pt] leading-relaxed">
+          Recebi de ROCHAMAR AGÊNCIA MARÍTIMA S.A., 1ª/2ª/3ª vias Originais e 5 cópias não negociáveis, 
+          dos Bs/L abaixo relacionados, referente ao MV {vessel} – {cargoNames[cargo]}, com embarque no 
+          porto de {port}.
+        </p>
+
+        {/* Table */}
+        <table className="w-full border-collapse mb-12">
+          <thead>
+            <tr className="border-b-2 border-black">
+              <th className="text-left py-3 font-bold text-[12pt]">B/L nbr</th>
+              <th className="text-left py-3 font-bold text-[12pt]">SHIPPER</th>
+              <th className="text-right py-3 font-bold text-[12pt]">QUANTITY</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-gray-300">
+              <td className="py-3 text-[11pt]">{formatBlNumbers(blNumbers)}</td>
+              <td className="py-3 text-[11pt]">{shipper}</td>
+              <td className="py-3 text-right text-[11pt]">{formatQuantity(quantity)}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      {/* Title */}
-      <h1 className="text-center text-xl font-bold my-6">RECIBO</h1>
-
-      {/* Main text */}
-      <p className="mb-6 text-justify">
-        Recebi de ROCHAMAR AGÊNCIA MARÍTIMA S.A., 1ª/2ª/3ª vias Originais e 5 cópias não negociáveis, 
-        dos Bs/L abaixo relacionados, referente ao MV {vessel} – {cargoNames[cargo]}, com embarque no 
-        porto de {port}.
-      </p>
-
-      {/* Table */}
-      <table className="w-full border-collapse mb-8">
-        <thead>
-          <tr className="border-b-2 border-black">
-            <th className="text-left py-2 font-bold">B/L nbr</th>
-            <th className="text-left py-2 font-bold">SHIPPER</th>
-            <th className="text-right py-2 font-bold">QUANTITY</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b border-gray-300">
-            <td className="py-2">{formatBlNumbers(blNumbers)}</td>
-            <td className="py-2">{shipper}</td>
-            <td className="py-2 text-right">{formatQuantity(quantity)}</td>
-          </tr>
-        </tbody>
-      </table>
-
       {/* Signature section */}
-      <div className="mt-12 space-y-4">
+      <div className="space-y-6 text-[11pt]">
         <div>
           <span>Empresa: </span>
-          <span className="inline-block border-b border-black w-64"></span>
+          <span className="inline-block border-b border-black w-80"></span>
         </div>
-        <div className="flex gap-8">
+        <div className="flex gap-12">
           <div>
             <span>Data: </span>
-            <span className="inline-block border-b border-black w-8"></span>
+            <span className="inline-block border-b border-black w-10"></span>
             <span>/</span>
-            <span className="inline-block border-b border-black w-8"></span>
+            <span className="inline-block border-b border-black w-10"></span>
             <span>/</span>
-            <span className="inline-block border-b border-black w-12"></span>
+            <span className="inline-block border-b border-black w-16"></span>
           </div>
           <div>
             <span>Horário: </span>
-            <span className="inline-block border-b border-black w-8"></span>
+            <span className="inline-block border-b border-black w-10"></span>
             <span>:</span>
-            <span className="inline-block border-b border-black w-8"></span>
+            <span className="inline-block border-b border-black w-10"></span>
           </div>
         </div>
         <div>
           <span>RG: </span>
-          <span className="inline-block border-b border-black w-64"></span>
+          <span className="inline-block border-b border-black w-80"></span>
         </div>
         <div>
           <span>Nome: </span>
-          <span className="inline-block border-b border-black w-64"></span>
+          <span className="inline-block border-b border-black w-80"></span>
         </div>
         <div>
           <span>Assinatura: </span>
-          <span className="inline-block border-b border-black w-64"></span>
+          <span className="inline-block border-b border-black w-80"></span>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="mt-12 text-[9pt] text-gray-600">
-        <p>Av. Ana Costa, nº 433, 9º and., cjs. 91/91/95/96</p>
-        <p>Edifício Parque Ana Costa</p>
-        <p>Tel: 13-3328 9500</p>
-        <p>www.rochamar.com</p>
+        {/* Footer */}
+        <div className="mt-8 text-[10pt] text-gray-600">
+          <p>Av. Ana Costa, nº 433, 9º and., cjs. 91/91/95/96</p>
+          <p>Edifício Parque Ana Costa</p>
+          <p>Tel: 13-3328 9500</p>
+          <p>www.rochamar.com</p>
+        </div>
       </div>
     </div>
   );

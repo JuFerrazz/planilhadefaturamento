@@ -177,6 +177,14 @@
     width: 100% !important;
   }
   
+  .print\\:break-after-page {
+    break-after: page !important;
+  }
+  
+  .print\\:space-y-0 > * + * {
+    margin-top: 0 !important;
+  }
+  
   #bl-document {
     width: 100vw !important;
     max-width: none !important;
@@ -191,6 +199,19 @@
   /* Remove bordas externas do container principal */
   #bl-document > div {
     border: none !important;
+  }
+  
+  /* Recibo styles - ocupar folha toda */
+  .bg-white {
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 8mm !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 }
 

@@ -72,17 +72,17 @@ export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({
         {/* Main text */}
         <p className="mb-12 text-justify text-[12pt] leading-relaxed">
           Recebi de ROCHAMAR AGÊNCIA MARÍTIMA S.A., 1ª/2ª/3ª vias Originais e 5 cópias não negociáveis, 
-          dos Bs/L abaixo relacionados, referente ao MV {vessel} – {cargoNames[cargo]}, com embarque no 
-          porto de {port}.
+          dos Bs/L abaixo relacionados, referente ao <span className="font-bold">MV {vessel} – {cargoNames[cargo]}</span>, com embarque no 
+          porto de <span className="font-bold">{port}</span>.
         </p>
 
         {/* Table */}
         <table className="w-full border-collapse mb-16">
           <thead>
             <tr className="border-b-2 border-black">
-              <th className="text-left py-4 font-bold text-[11pt]">B/L nbr</th>
-              <th className="text-left py-4 font-bold text-[11pt]">SHIPPER</th>
-              <th className="text-right py-4 font-bold text-[11pt]">QUANTITY</th>
+              <th className="text-left py-4 font-bold text-[10pt]">B/L nbr</th>
+              <th className="text-left py-4 font-bold text-[10pt]">SHIPPER</th>
+              <th className="text-right py-4 font-bold text-[10pt]">QUANTITY</th>
             </tr>
           </thead>
           <tbody>

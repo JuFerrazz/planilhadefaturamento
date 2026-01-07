@@ -61,9 +61,11 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
       const match = cnpjPattern.exec(afterExportadores);
       if (match) {
         shipperCnpj = match[1];
-        // Clean up shipper name - remove common suffixes that might be picked up
+        // Clean up shipper name - remove "Forma de exportação" and similar patterns
         let rawName = match[2].trim().toUpperCase();
-        // Remove common words that might be from next line
+        // Remove "Forma de exportação" and everything after it
+        rawName = rawName.replace(/\s+FORMA\s+DE\s+EXPORTA[ÇC][ÃA]O.*$/i, '');
+        // Remove other common patterns that might be picked up
         rawName = rawName.replace(/\s+(FORMA|DE|EXPORTA|EXPORTACAO|EXPORTAÇÃO|COMERCIO|EXTERIOR).*$/i, '');
         // Clean up extra spaces
         shipperName = rawName.replace(/\s+/g, ' ').trim();
@@ -77,7 +79,9 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
       if (match) {
         shipperCnpj = match[1];
         let rawName = match[2].trim().toUpperCase();
-        // Remove common words that might be from next line
+        // Remove "Forma de exportação" and everything after it
+        rawName = rawName.replace(/\s+FORMA\s+DE\s+EXPORTA[ÇC][ÃA]O.*$/i, '');
+        // Remove other common patterns that might be picked up
         rawName = rawName.replace(/\s+(FORMA|DE|EXPORTA|EXPORTACAO|EXPORTAÇÃO|COMERCIO|EXTERIOR).*$/i, '');
         // Clean up extra spaces
         shipperName = rawName.replace(/\s+/g, ' ').trim();

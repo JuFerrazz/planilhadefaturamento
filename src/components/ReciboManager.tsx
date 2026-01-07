@@ -89,7 +89,6 @@ export function ReciboManager() {
       });
       
       setGrainRecibos(recibos);
-      toast.success(`${recibos.length} recibos gerados para ${data.entries.length} BLs`);
     } catch (error) {
       console.error('Error processing cargo manifest:', error);
       toast.error('Erro ao processar o Cargo Manifest');
@@ -126,7 +125,6 @@ export function ReciboManager() {
     });
     
     setSugarRecibos(recibos);
-    toast.success(`${recibos.length} recibos gerados para ${data.entries.length} BLs`);
   }, [sugarPastedText]);
 
   const handlePrintAll = useCallback(() => {

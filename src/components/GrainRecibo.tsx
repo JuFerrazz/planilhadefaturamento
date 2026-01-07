@@ -1,5 +1,6 @@
-import { useRef, forwardRef } from 'react';
+import { forwardRef } from 'react';
 import agriPortLogo from '@/assets/agri-port-logo.png';
+import rochamarLogo from '@/assets/rochamar-logo.png';
 
 interface GrainReciboProps {
   date: string;
@@ -54,15 +55,22 @@ export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({
       }}
     >
       <div className="flex-1">
-        {/* Header with logo */}
+        {/* Header with logos */}
         <div className="flex justify-between items-start mb-6">
           <img 
             src={agriPortLogo} 
             alt="Agri Port Services Brasil" 
             className="h-16 object-contain"
           />
-          <div className="text-right text-[12pt] font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
-            DATA: {date}
+          <div className="flex flex-col items-end gap-2">
+            <img 
+              src={rochamarLogo} 
+              alt="Rochamar" 
+              className="h-12 object-contain"
+            />
+            <div className="text-[12pt] font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
+              DATA: {date}
+            </div>
           </div>
         </div>
 

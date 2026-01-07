@@ -18,12 +18,13 @@ export const SugarRecibo = forwardRef<HTMLDivElement, SugarReciboProps>(({
   customsBroker,
   entries
 }, ref) => {
-  // Format quantity with comma as decimal separator
+  // Format quantity without rounding - preserve original decimals
   const formatQuantity = (qty: number) => {
-    return qty.toLocaleString('en-US', { 
-      minimumFractionDigits: 3, 
-      maximumFractionDigits: 3 
-    }) + ' MT';
+    const str = qty.toString();
+    const parts = str.split('.');
+    const intPart = parseInt(parts[0]).toLocaleString('en-US');
+    const decPart = parts[1] || '';
+    return decPart ? `${intPart}.${decPart} MT` : `${intPart} MT`;
   };
 
   return (

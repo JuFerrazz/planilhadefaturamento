@@ -39,125 +39,136 @@ export const parseCargoManifest = async (file: File): Promise<CargoManifestData 
       fullText += pageText + '\n';
     }
     
-    console.log('Extracted PDF Text (first 500 chars):', fullText.substring(0, 500));
+    console.log('Extracted PDF Text:', fullText);
     
-    // Extract VESSEL - multiple patterns
+    // Extract VESSEL - look for "VESSEL:" followed by the name
     let vessel = '';
-    const vesselPatterns = [
-      /VESSEL\s*:?\s*(?:MV\s+)?([A-Z][A-Z\s\-]+?)(?=\s+MASTER|\s+PORT|\s+DATE|\n|$)/i,
-      /MV\s+([A-Z][A-Z\s\-]+?)(?=\s+MASTER|\s+PORT|\s+DATE|\n|$)/i,
-      /VESSEL\s+NAME\s*:?\s*([A-Z][A-Z\s\-]+?)(?=\s+|\n|$)/i
-    ];
-    
-    for (const pattern of vesselPatterns) {
-      const match = fullText.match(pattern);
-      if (match) {
-        vessel = match[1].trim();
-        break;
-      }
+    const vesselMatch = fullText.match(/VESSEL\s*:\s*(?:MV\s+)?([A-Z][A-Z0-9\s\-]+?)(?=\s+MASTER|\s+PORT|\s+DATE|\s+[A-Z]+:)/i);
+    if (vesselMatch) {
+      vessel = vesselMatch[1].trim();
     }
+    console.log('Extracted vessel:', vessel);
     
-    // Extract PORT OF LOADING - multiple patterns
+    // Extract PORT OF LOADING
     let port = '';
-    const portPatterns = [
-      /PORT\s+OF\s+LOADING\s*:?\s*([A-Z][A-Z\s,\-]+?)(?=\s+DATE|\s+PORT\s+OF\s+DISCHARGE|\s+BRAZIL|\n|$)/i,
-      /LOADING\s+PORT\s*:?\s*([A-Z][A-Z\s,\-]+?)(?=\s+|\n|$)/i,
-      /FROM\s+PORT\s*:?\s*([A-Z][A-Z\s,\-]+?)(?=\s+|\n|$)/i
-    ];
-    
-    for (const pattern of portPatterns) {
-      const match = fullText.match(pattern);
-      if (match) {
-        port = match[1].trim();
-        port = port.replace(/,?\s*BRAZIL\s*$/i, '').trim();
-        break;
-      }
+    const portMatch = fullText.match(/PORT\s+OF\s+LOADING\s*:\s*([A-Z][A-Z\s,\-]+?)(?=\s+DATE|\s+PORT\s+OF\s+DISCHARGE|\s+[A-Z]+:)/i);
+    if (portMatch) {
+      port = portMatch[1].trim();
+      // Remove ", BRAZIL" if present
+      port = port.replace(/,?\s*BRAZIL\s*$/i, '').trim();
     }
+    console.log('Extracted port:', port);
     
-    // Extract BL entries - improved patterns
+    // Extract BL entries from table
+    // The table format is: B/L nbr | SHIPPER | ... | QUANTITY
     const entries: ReciboBLEntry[] = [];
     
-    // Multiple BL patterns to try
-    const blPatterns = [
-      /B\/L\s*(?:No\.?|NUMBER)\s*:?\s*(\d+)\s+([A-Z][A-Z\s\.\/\-&,]+?)(?=\s+(?:TO\s+ORDER|CONSIGNEE|NOTIFY|QUANTITY))/gi,
-      /BL\s*(?:No\.?|NUMBER)\s*:?\s*(\d+)\s+([A-Z][A-Z\s\.\/\-&,]+?)(?=\s+(?:TO\s+ORDER|CONSIGNEE|NOTIFY|QUANTITY))/gi,
-      /(?:^|\n)\s*(\d+)\s+([A-Z][A-Z\s\.\/\-&,]{10,}?)(?=\s+(?:TO\s+ORDER|CONSIGNEE|NOTIFY|\d+[,.]?\d*\s*(?:MT|METRIC)))/gim
-    ];
+    // Pattern to find table rows with B/L number, shipper, and quantity
+    // Looking for: number + company name + ... + quantity in METRIC TONS
+    const tableRowPattern = /\b(\d{1,4})\s+([A-Z][A-Z\s\.\/\-&,]+?(?:LTDA?|LLC|INC|CORP|SA|S\.A\.|LTD)?)\s+.*?(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*METRIC\s*TONS?/gi;
     
-    let allMatches: { blNumber: string; shipper: string; position: number }[] = [];
+    let match;
+    while ((match = tableRowPattern.exec(fullText)) !== null) {
+      const blNumber = match[1];
+      let shipper = match[2].trim().replace(/\s+/g, ' ');
+      const quantityStr = match[3].replace(/,/g, '');
+      const quantity = parseFloat(quantityStr);
+      
+      // Clean up shipper name - remove trailing noise
+      shipper = shipper.replace(/\s+(TO\s+ORDER|CONSIGNEE|NOTIFY).*$/i, '').trim();
+      
+      if (blNumber && shipper && quantity > 0) {
+        entries.push({
+          blNumber,
+          shipper,
+          quantity
+        });
+        console.log(`Found entry: BL ${blNumber}, Shipper: ${shipper}, Quantity: ${quantity}`);
+      }
+    }
     
-    for (const pattern of blPatterns) {
-      let match;
-      while ((match = pattern.exec(fullText)) !== null) {
-        const shipper = match[2].trim().replace(/\s+/g, ' ');
-        // Filter out obvious non-shipper text
-        if (shipper.length > 5 && !shipper.match(/^(TO\s+ORDER|CONSIGNEE|NOTIFY|QUANTITY)/i)) {
-          allMatches.push({
-            blNumber: match[1],
-            shipper: shipper,
-            position: match.index
-          });
+    // Alternative approach: look for individual patterns if table parsing fails
+    if (entries.length === 0) {
+      console.log('Table parsing failed, trying alternative approach...');
+      
+      // Find all BL numbers (1-4 digits at start of table row)
+      const blMatches = [...fullText.matchAll(/\b(\d{1,4})\s+([A-Z][A-Z\s\.\/\-&,]+?(?:LTDA?|LLC|INC|CORP|SA|S\.A\.|LTD)?\b)/gi)];
+      
+      // Find all quantities
+      const qtyMatches = [...fullText.matchAll(/(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*METRIC\s*TONS?/gi)];
+      
+      console.log('BL matches:', blMatches.map(m => ({ bl: m[1], shipper: m[2] })));
+      console.log('Quantity matches:', qtyMatches.map(m => m[1]));
+      
+      // If we have equal numbers of BLs and quantities, match them
+      if (blMatches.length > 0 && blMatches.length === qtyMatches.length) {
+        for (let i = 0; i < blMatches.length; i++) {
+          const blNumber = blMatches[i][1];
+          let shipper = blMatches[i][2].trim().replace(/\s+/g, ' ');
+          const quantityStr = qtyMatches[i][1].replace(/,/g, '');
+          const quantity = parseFloat(quantityStr);
+          
+          if (blNumber && shipper && quantity > 0) {
+            entries.push({
+              blNumber,
+              shipper,
+              quantity
+            });
+            console.log(`Found entry (alt): BL ${blNumber}, Shipper: ${shipper}, Quantity: ${quantity}`);
+          }
         }
       }
     }
     
-    // Remove duplicates and sort by position
-    const uniqueMatches = allMatches.filter((match, index, arr) => 
-      arr.findIndex(m => m.blNumber === match.blNumber) === index
-    ).sort((a, b) => a.position - b.position);
-    
-    console.log('Found BL matches:', uniqueMatches);
-    
-    // For each BL, find the quantity that follows
-    for (let i = 0; i < uniqueMatches.length; i++) {
-      const bl = uniqueMatches[i];
-      const nextBlPos = i + 1 < uniqueMatches.length ? uniqueMatches[i + 1].position : fullText.length;
-      const section = fullText.substring(bl.position, nextBlPos);
+    // Third approach: simpler pattern for structured table
+    if (entries.length === 0) {
+      console.log('Trying simpler pattern...');
       
-      // Multiple quantity patterns
-      const qtyPatterns = [
-        /(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*(?:MT|METRIC\s*TONS?)/i,
-        /QUANTITY\s*:?\s*(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*(?:MT|METRIC\s*TONS?)/i,
-        /(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*TONS?/i
-      ];
+      // Split text and look for patterns
+      const parts = fullText.split(/\s+/);
       
-      let quantity = 0;
-      for (const qtyPattern of qtyPatterns) {
-        const qtyMatch = section.match(qtyPattern);
-        if (qtyMatch) {
-          const quantityStr = qtyMatch[1].replace(/,/g, '');
-          quantity = parseFloat(quantityStr);
-          break;
+      for (let i = 0; i < parts.length; i++) {
+        // Look for a small number (1-4 digits) that could be a BL
+        if (/^\d{1,4}$/.test(parts[i])) {
+          const blNumber = parts[i];
+          
+          // Look for company name after BL number
+          let shipperParts: string[] = [];
+          let j = i + 1;
+          while (j < parts.length && /^[A-Z]/.test(parts[j]) && !/^\d/.test(parts[j])) {
+            shipperParts.push(parts[j]);
+            j++;
+            // Stop at known end markers
+            if (parts[j-1].match(/LTDA?|LLC|INC|CORP|SA|LTD$/i)) break;
+            if (shipperParts.length > 10) break; // Safety limit
+          }
+          
+          if (shipperParts.length >= 2) {
+            const shipper = shipperParts.join(' ');
+            
+            // Look for quantity (METRIC TONS) after this position
+            const remainingText = parts.slice(j).join(' ');
+            const qtyMatch = remainingText.match(/(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*METRIC\s*TONS?/i);
+            
+            if (qtyMatch) {
+              const quantityStr = qtyMatch[1].replace(/,/g, '');
+              const quantity = parseFloat(quantityStr);
+              
+              if (quantity > 0) {
+                entries.push({
+                  blNumber,
+                  shipper,
+                  quantity
+                });
+                console.log(`Found entry (simple): BL ${blNumber}, Shipper: ${shipper}, Quantity: ${quantity}`);
+              }
+            }
+          }
         }
-      }
-      
-      if (quantity > 0) {
-        entries.push({
-          blNumber: bl.blNumber,
-          shipper: bl.shipper,
-          quantity
-        });
       }
     }
     
     console.log('Parsed entries:', entries);
-    
-    // If no structured data found, try to extract any meaningful info
-    if (entries.length === 0) {
-      console.log('No structured entries found, trying fallback extraction...');
-      
-      // Try to find any numbers that could be BL numbers
-      const numberMatches = fullText.match(/\b\d{4,8}\b/g);
-      if (numberMatches && numberMatches.length > 0) {
-        console.log('Found potential BL numbers:', numberMatches.slice(0, 5));
-      }
-      
-      // Try to find company names (sequences of capital letters)
-      const companyMatches = fullText.match(/\b[A-Z][A-Z\s]{10,50}\b/g);
-      if (companyMatches && companyMatches.length > 0) {
-        console.log('Found potential company names:', companyMatches.slice(0, 5));
-      }
-    }
     
     if (!vessel && !port && entries.length === 0) {
       console.log('No data extracted from PDF');

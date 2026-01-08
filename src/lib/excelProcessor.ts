@@ -49,6 +49,17 @@ export interface OutputRow {
   '_valorZerado': boolean; // Valor total zerado
 }
 
+// Ordem fixa das colunas quando não há cabeçalho
+const COLUMN_ORDER = [
+  'Name of shipper',
+  'Qtd per BL',
+  'BL nbr',
+  'Qtd per DU-E',
+  'CNPJ/VAT',
+  'DU-E',
+  'Customs broker'
+];
+
 export function validateColumns(headers: string[]): { valid: boolean; missing: string[] } {
   const normalizedHeaders = headers.map(h => normalizeColumnName(h?.trim()));
   const missing = REQUIRED_COLUMNS.filter(col => !normalizedHeaders.includes(col));
@@ -58,31 +69,46 @@ export function validateColumns(headers: string[]): { valid: boolean; missing: s
   };
 }
 
+// Verifica se a primeira linha parece ser um cabeçalho
+function isHeaderRow(values: string[]): boolean {
+  const normalizedValues = values.map(v => normalizeColumnName(v?.trim() || ''));
+  // Se pelo menos 3 colunas reconhecidas, é cabeçalho
+  const matchedColumns = REQUIRED_COLUMNS.filter(col => normalizedValues.includes(col));
+  return matchedColumns.length >= 3;
+}
+
 export function processPastedData(text: string): ProcessingResult {
   try {
     // Split by lines and then by tabs
     const lines = text.trim().split(/\r?\n/);
-    if (lines.length < 2) {
-      return { success: false, error: 'Dados insuficientes. Cole pelo menos o cabeçalho e uma linha de dados.' };
+    if (lines.length < 1) {
+      return { success: false, error: 'Dados insuficientes. Cole pelo menos uma linha de dados.' };
     }
 
-    // First line is headers - normalize them
-    const originalHeaders = lines[0].split('\t').map(h => h.trim());
-    const headers = originalHeaders.map(h => normalizeColumnName(h));
+    // Check if first line is a header row
+    const firstLineValues = lines[0].split('\t').map(h => h.trim());
+    const hasHeader = isHeaderRow(firstLineValues);
     
-    // Validate columns
-    const validation = validateColumns(headers);
-    if (!validation.valid) {
-      return { 
-        success: false, 
-        error: 'Colunas obrigatórias não encontradas nos dados colados.',
-        missingColumns: validation.missing 
-      };
+    let headers: string[];
+    let dataStartIndex: number;
+    
+    if (hasHeader) {
+      // First line is headers - normalize them
+      headers = firstLineValues.map(h => normalizeColumnName(h));
+      dataStartIndex = 1;
+    } else {
+      // No header - use fixed column order
+      headers = COLUMN_ORDER;
+      dataStartIndex = 0;
     }
 
-    // Parse data rows using normalized headers
+    if (lines.length <= dataStartIndex) {
+      return { success: false, error: 'Dados insuficientes. Cole pelo menos uma linha de dados.' };
+    }
+
+    // Parse data rows using headers
     const jsonData: Record<string, any>[] = [];
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = dataStartIndex; i < lines.length; i++) {
       const values = lines[i].split('\t');
       const row: Record<string, any> = {};
       headers.forEach((header, idx) => {
@@ -283,44 +309,48 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         
-        // Convert to JSON as objects (using first row as headers)
-        const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: '' }) as Record<string, any>[];
+        // Convert to array of arrays first to check for header
+        const rawArrayData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][];
         
-        console.log('Raw data first row:', rawData[0]);
-        
-        if (rawData.length === 0) {
+        if (rawArrayData.length === 0) {
           resolve({ success: false, error: 'A planilha está vazia ou não contém dados suficientes.' });
           return;
         }
 
-        // Normalize the data by trimming column names and applying header normalization
-        const jsonData = rawData.map(row => {
-          const normalizedRow: Record<string, any> = {};
-          for (const key of Object.keys(row)) {
-            const normalizedKey = normalizeColumnName(key.trim());
-            normalizedRow[normalizedKey] = row[key];
-          }
-          return normalizedRow;
-        });
-
-        // Get headers from the first row's keys (already normalized)
-        const headers = Object.keys(jsonData[0]);
-        console.log('Normalized headers:', headers);
+        // Check if first row is a header
+        const firstRow = rawArrayData[0].map(v => String(v || '').trim());
+        const hasHeader = isHeaderRow(firstRow);
         
-        // Validate columns
-        const validation = validateColumns(headers);
-        if (!validation.valid) {
-          console.log('Missing columns:', validation.missing);
-          resolve({ 
-            success: false, 
-            error: 'Colunas obrigatórias não encontradas na planilha.',
-            missingColumns: validation.missing 
-          });
+        let headers: string[];
+        let dataRows: any[][];
+        
+        if (hasHeader) {
+          headers = firstRow.map(h => normalizeColumnName(h));
+          dataRows = rawArrayData.slice(1);
+        } else {
+          headers = COLUMN_ORDER;
+          dataRows = rawArrayData;
+        }
+
+        console.log('Has header:', hasHeader);
+        console.log('Headers:', headers);
+
+        if (dataRows.length === 0) {
+          resolve({ success: false, error: 'A planilha não contém dados suficientes.' });
           return;
         }
 
+        // Convert to array of objects using headers
+        const jsonData = dataRows.map(row => {
+          const obj: Record<string, any> = {};
+          headers.forEach((header, idx) => {
+            obj[header] = row[idx] !== undefined ? String(row[idx]).trim() : '';
+          });
+          return obj;
+        });
+
         console.log('Data rows count:', jsonData.length);
-        console.log('First normalized row:', jsonData[0]);
+        console.log('First row:', jsonData[0]);
 
         // Group by shipper + broker combination
         const groupedData: Record<string, { blNumbers: string[]; shipper: string; cnpj: string; broker: string }> = {};

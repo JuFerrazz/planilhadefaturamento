@@ -49,7 +49,8 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
     const duE = dueMatch ? dueMatch[0].replace(/-/g, '') : '';
     
     // Extract CNPJ and company name from Exportadores section
-    const cnpjPattern = /(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\s+([A-Z][A-Z\s\.\-&]+?(?:S\.?A\.?|LTDA\.?|ME|EPP|EIRELI)?)(?=\s|$)/gi;
+    // Pattern captures CNPJ followed by company name that ends with S/A, S.A., LTDA, etc.
+    const cnpjPattern = /(\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})\s+([A-Z][A-Z0-9\s\.\-&\/]+?(?:S\/?A\.?|S\.A\.?|LTDA\.?|ME|EPP|EIRELI))(?=\s|$)/gi;
     
     let shipperCnpj = '';
     let shipperName = '';
@@ -61,12 +62,12 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
       const match = cnpjPattern.exec(afterExportadores);
       if (match) {
         shipperCnpj = match[1];
-        // Clean up shipper name - remove "Forma de exportação" and similar patterns
+        // Clean up shipper name
         let rawName = match[2].trim().toUpperCase();
+        // Normalize S/A to S.A.
+        rawName = rawName.replace(/S\/A\.?$/i, 'S.A.');
         // Remove "Forma de exportação" and everything after it
         rawName = rawName.replace(/\s+FORMA\s+DE\s+EXPORTA[ÇC][ÃA]O.*$/i, '');
-        // Remove other common patterns that might be picked up
-        rawName = rawName.replace(/\s+(FORMA|DE|EXPORTA|EXPORTACAO|EXPORTAÇÃO|COMERCIO|EXTERIOR).*$/i, '');
         // Clean up extra spaces
         shipperName = rawName.replace(/\s+/g, ' ').trim();
       }
@@ -79,10 +80,10 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
       if (match) {
         shipperCnpj = match[1];
         let rawName = match[2].trim().toUpperCase();
+        // Normalize S/A to S.A.
+        rawName = rawName.replace(/S\/A\.?$/i, 'S.A.');
         // Remove "Forma de exportação" and everything after it
         rawName = rawName.replace(/\s+FORMA\s+DE\s+EXPORTA[ÇC][ÃA]O.*$/i, '');
-        // Remove other common patterns that might be picked up
-        rawName = rawName.replace(/\s+(FORMA|DE|EXPORTA|EXPORTACAO|EXPORTAÇÃO|COMERCIO|EXTERIOR).*$/i, '');
         // Clean up extra spaces
         shipperName = rawName.replace(/\s+/g, ' ').trim();
       }

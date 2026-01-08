@@ -39,14 +39,32 @@ export const BLManager = () => {
   }, [activeIndex]);
 
   const handleAddAtracacao = useCallback(() => {
-    const newId = String(atracaoList.length + 1);
-    const newAtracacao = createEmptyAtracacao(newId, `${atracaoList.length + 1}ª Atracação`);
+    const newAtracaoId = String(atracaoList.length + 1);
+    const newAtracacao = createEmptyAtracacao(newAtracaoId, `${atracaoList.length + 1}ª Atracação`);
+    
+    // Cria um novo BL para a nova atracação
+    const newBLId = String(blList.length + 1);
+    const newBL = createEmptyBL(newBLId, newAtracaoId);
+    newBL.blNumber = '1'; // Primeiro BL da nova atracação
+    
+    // Copia informações globais do primeiro BL
+    if (blList.length > 0) {
+      const firstBL = blList[0];
+      newBL.vessel = firstBL.vessel;
+      newBL.portOfLoading = firstBL.portOfLoading;
+      newBL.portOfDischarge = firstBL.portOfDischarge;
+      newBL.cargoType = firstBL.cargoType;
+    }
+    
     setAtracaoList([...atracaoList, newAtracacao]);
+    setBlList([...blList, newBL]);
+    setActiveIndex(blList.length); // Navega para o novo BL
+    
     toast({
       title: "Nova atracação criada",
-      description: `${newAtracacao.name} adicionada. Agora você pode associar BLs a ela.`,
+      description: `${newAtracacao.name} adicionada com BL #1.`,
     });
-  }, [atracaoList]);
+  }, [atracaoList, blList]);
 
   const handleUpdateAtracacao = useCallback((updated: Atracacao) => {
     setAtracaoList(atracaoList.map(a => a.id === updated.id ? updated : a));

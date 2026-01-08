@@ -60,12 +60,13 @@ export const parseCargoManifest = async (file: File): Promise<CargoManifestData 
     console.log('Extracted port:', port);
     
     // Extract BL entries from table
-    // The table format is: B/L nbr | SHIPPER | ... | QUANTITY
+    // The table format is: B/L nbr | SHIPPER | CONSIGNEE | ... | QUANTITY
     const entries: ReciboBLEntry[] = [];
     
     // Pattern to find table rows with B/L number, shipper, and quantity
-    // Looking for: number + company name + ... + quantity in METRIC TONS
-    const tableRowPattern = /\b(\d{1,4})\s+([A-Z][A-Z\s\.\/\-&,]+?(?:LTDA?|LLC|INC|CORP|SA|S\.A\.|LTD)?)\s+.*?(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*METRIC\s*TONS?/gi;
+    // Format: BL_NUMBER + SHIPPER_NAME (ending in LTDA, LLC, etc.) + ... + QUANTITY METRIC TONS
+    // The shipper name ends when we see a company suffix followed by a space and another company name (consignee)
+    const tableRowPattern = /\b(\d{1,4})\s+([A-Z][A-Z\s\.\/\-&,]+?(?:LTDA|LLC|INC|CORP|SA|S\.A\.|LTD))\s+(?:[A-Z].*?)?(\d{1,3}(?:[,\.]\d{3})*(?:[,\.]\d+)?)\s*METRIC\s*TONS?/gi;
     
     let match;
     while ((match = tableRowPattern.exec(fullText)) !== null) {
@@ -73,9 +74,6 @@ export const parseCargoManifest = async (file: File): Promise<CargoManifestData 
       let shipper = match[2].trim().replace(/\s+/g, ' ');
       const quantityStr = match[3].replace(/,/g, '');
       const quantity = parseFloat(quantityStr);
-      
-      // Clean up shipper name - remove trailing noise
-      shipper = shipper.replace(/\s+(TO\s+ORDER|CONSIGNEE|NOTIFY).*$/i, '').trim();
       
       if (blNumber && shipper && quantity > 0) {
         entries.push({

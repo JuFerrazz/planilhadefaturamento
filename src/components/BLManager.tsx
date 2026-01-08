@@ -45,7 +45,7 @@ export const BLManager = () => {
     // Cria um novo BL para a nova atracação
     const newBLId = String(blList.length + 1);
     const newBL = createEmptyBL(newBLId, newAtracaoId);
-    newBL.blNumber = '1'; // Primeiro BL da nova atracação
+    newBL.blNumber = newBLId; // Numeração sequencial independente da atracação
     
     // Copia informações globais do primeiro BL
     if (blList.length > 0) {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, FileText, Loader2, Printer, Ship, Calendar, MapPin, Package, Trash2, ClipboardPaste, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Printer, Ship, Calendar, MapPin, Package, Trash2, ClipboardPaste, Eye, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,13 +12,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { parseCargoManifest, groupByShipper } from '@/lib/cargoManifestParser';
 import { parsePastedData, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
 import { GrainRecibo } from './GrainRecibo';
 import { SugarRecibo } from './SugarRecibo';
-import { CargoManifestData } from '@/types/recibo';
 
 type CargoType = 'SBS' | 'SBM' | 'CORN';
+
+interface GrainEntry {
+  id: number;
+  blNumber: string;
+  shipper: string;
+  quantity: string;
+}
 
 interface GrainReciboData {
   shipper: string;
@@ -37,9 +42,12 @@ export function ReciboManager() {
   // Grain state
   const [grainDate, setGrainDate] = useState<Date | undefined>(new Date());
   const [grainCargo, setGrainCargo] = useState<CargoType>('SBS');
-  const [grainManifestData, setGrainManifestData] = useState<CargoManifestData | null>(null);
+  const [grainVessel, setGrainVessel] = useState('');
+  const [grainPort, setGrainPort] = useState('');
+  const [grainEntries, setGrainEntries] = useState<GrainEntry[]>([
+    { id: 1, blNumber: '', shipper: '', quantity: '' }
+  ]);
   const [grainRecibos, setGrainRecibos] = useState<GrainReciboData[]>([]);
-  const [grainProcessing, setGrainProcessing] = useState(false);
   const [showGrainPreview, setShowGrainPreview] = useState(false);
   const [currentGrainIndex, setCurrentGrainIndex] = useState(0);
   
@@ -52,50 +60,72 @@ export function ReciboManager() {
   const [showSugarPreview, setShowSugarPreview] = useState(false);
   const [currentSugarIndex, setCurrentSugarIndex] = useState(0);
   
-  const grainFileInputRef = useRef<HTMLInputElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Handle Cargo Manifest PDF upload
-  const handleGrainFileUpload = useCallback(async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      toast.error('Por favor, selecione um arquivo PDF (Cargo Manifest)');
+  // Grain entry handlers
+  const handleAddGrainEntry = useCallback(() => {
+    const newId = Math.max(...grainEntries.map(e => e.id), 0) + 1;
+    setGrainEntries(prev => [...prev, { id: newId, blNumber: '', shipper: '', quantity: '' }]);
+  }, [grainEntries]);
+
+  const handleRemoveGrainEntry = useCallback((id: number) => {
+    if (grainEntries.length <= 1) return;
+    setGrainEntries(prev => prev.filter(e => e.id !== id));
+  }, [grainEntries.length]);
+
+  const handleGrainEntryChange = useCallback((id: number, field: keyof GrainEntry, value: string) => {
+    setGrainEntries(prev => prev.map(e => 
+      e.id === id ? { ...e, [field]: value } : e
+    ));
+  }, []);
+
+  // Process grain entries into recibos (grouped by shipper)
+  const handleProcessGrain = useCallback(() => {
+    const validEntries = grainEntries.filter(e => e.blNumber.trim() && e.shipper.trim() && e.quantity.trim());
+    
+    if (validEntries.length === 0) {
+      toast.error('Preencha pelo menos uma entrada completa (BL, Shipper e Quantidade)');
       return;
     }
 
-    setGrainProcessing(true);
-    setShowGrainPreview(false);
-    
-    try {
-      const data = await parseCargoManifest(file);
-      
-      if (!data || data.entries.length === 0) {
-        toast.error('Não foi possível extrair dados do Cargo Manifest');
-        setGrainProcessing(false);
-        return;
-      }
-      
-      setGrainManifestData(data);
-      
-      // Group by shipper
-      const grouped = groupByShipper(data.entries);
-      const recibos: GrainReciboData[] = [];
-      
-      grouped.forEach((value, shipper) => {
-        recibos.push({
-          shipper,
-          blNumbers: value.blNumbers,
-          quantity: value.totalQuantity
-        });
-      });
-      
-      setGrainRecibos(recibos);
-    } catch (error) {
-      console.error('Error processing cargo manifest:', error);
-      toast.error('Erro ao processar o Cargo Manifest');
+    if (!grainVessel.trim() || !grainPort.trim()) {
+      toast.error('Preencha o nome do navio e porto');
+      return;
     }
+
+    // Group by shipper
+    const grouped = new Map<string, { blNumbers: string[]; totalQuantity: number }>();
     
-    setGrainProcessing(false);
-  }, []);
+    validEntries.forEach(entry => {
+      const shipper = entry.shipper.trim().toUpperCase();
+      const qty = parseFloat(entry.quantity.replace(',', '.')) || 0;
+      
+      if (grouped.has(shipper)) {
+        const existing = grouped.get(shipper)!;
+        existing.blNumbers.push(entry.blNumber.trim());
+        existing.totalQuantity += qty;
+      } else {
+        grouped.set(shipper, {
+          blNumbers: [entry.blNumber.trim()],
+          totalQuantity: qty
+        });
+      }
+    });
+
+    const recibos: GrainReciboData[] = [];
+    grouped.forEach((value, shipper) => {
+      recibos.push({
+        shipper,
+        blNumbers: value.blNumbers,
+        quantity: value.totalQuantity
+      });
+    });
+
+    setGrainRecibos(recibos);
+    setShowGrainPreview(true);
+    setCurrentGrainIndex(0);
+    toast.success(`${recibos.length} recibo(s) gerado(s)`);
+  }, [grainEntries, grainVessel, grainPort]);
 
   // Handle Sugar pasted data
   const handleSugarPaste = useCallback(() => {
@@ -133,13 +163,14 @@ export function ReciboManager() {
 
   const handleReset = useCallback((type: 'grain' | 'sugar') => {
     if (type === 'grain') {
-      setGrainManifestData(null);
       setGrainRecibos([]);
       setGrainDate(new Date());
       setGrainCargo('SBS');
+      setGrainVessel('');
+      setGrainPort('');
+      setGrainEntries([{ id: 1, blNumber: '', shipper: '', quantity: '' }]);
       setShowGrainPreview(false);
       setCurrentGrainIndex(0);
-      if (grainFileInputRef.current) grainFileInputRef.current.value = '';
     } else {
       setSugarRecibos([]);
       setSugarDate(new Date());
@@ -234,90 +265,107 @@ export function ReciboManager() {
                 </div>
               </div>
 
-              {/* Manifest info display */}
-              {grainManifestData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Ship className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Navio:</span>
-                    <span className="text-sm">{grainManifestData.vessel || 'Não identificado'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Porto:</span>
-                    <span className="text-sm">{grainManifestData.port || 'Não identificado'}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* File Upload */}
-              <div className="space-y-2">
-                <Label>Carregar Cargo Manifest (PDF)</Label>
-                <div 
-                  className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
-                  onClick={() => grainFileInputRef.current?.click()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const file = e.dataTransfer.files[0];
-                    if (file) handleGrainFileUpload(file);
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.add('border-primary');
-                  }}
-                  onDragLeave={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.remove('border-primary');
-                  }}
-                >
-                  <input
-                    ref={grainFileInputRef}
-                    type="file"
-                    accept=".pdf"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleGrainFileUpload(file);
-                    }}
+              {/* Vessel and Port */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Ship className="w-4 h-4" />
+                    Navio
+                  </Label>
+                  <Input 
+                    value={grainVessel} 
+                    onChange={(e) => setGrainVessel(e.target.value)}
+                    placeholder="Nome do navio"
                   />
-                  {grainProcessing ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                      <span className="text-sm text-muted-foreground">Processando...</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Clique ou arraste o arquivo Cargo Manifest (PDF) aqui
-                      </span>
-                    </div>
-                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Porto
+                  </Label>
+                  <Input 
+                    value={grainPort} 
+                    onChange={(e) => setGrainPort(e.target.value)}
+                    placeholder="Porto de embarque"
+                  />
                 </div>
               </div>
 
+              {/* Entries */}
+              <div className="space-y-3">
+                <Label>Entradas (BL, Shipper, Quantity)</Label>
+                {grainEntries.map((entry, index) => (
+                  <div key={entry.id} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-3">
+                      <Input 
+                        value={entry.blNumber}
+                        onChange={(e) => handleGrainEntryChange(entry.id, 'blNumber', e.target.value)}
+                        placeholder="BL Number"
+                      />
+                    </div>
+                    <div className="col-span-5">
+                      <Input 
+                        value={entry.shipper}
+                        onChange={(e) => handleGrainEntryChange(entry.id, 'shipper', e.target.value)}
+                        placeholder="Shipper"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <Input 
+                        value={entry.quantity}
+                        onChange={(e) => handleGrainEntryChange(entry.id, 'quantity', e.target.value)}
+                        placeholder="Qty (MT)"
+                        type="text"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveGrainEntry(entry.id)}
+                        disabled={grainEntries.length <= 1}
+                        className="w-full p-0 h-8"
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddGrainEntry}
+                  className="w-full gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar Entrada
+                </Button>
+              </div>
+
               {/* Actions */}
-              {grainRecibos.length > 0 && (
-                <div className="flex gap-3 justify-center">
-                  <Button onClick={() => setShowGrainPreview(true)} variant="outline" className="gap-2">
-                    <Eye className="w-4 h-4" />
-                    Preview ({grainRecibos.length})
-                  </Button>
-                  <Button onClick={handlePrintAll} className="gap-2">
-                    <Printer className="w-4 h-4" />
-                    Imprimir Todos
-                  </Button>
-                  <Button variant="outline" onClick={() => handleReset('grain')} className="gap-2">
-                    <Trash2 className="w-4 h-4" />
-                    Limpar
-                  </Button>
-                </div>
-              )}
+              <div className="flex gap-3 justify-center pt-4">
+                <Button onClick={handleProcessGrain} className="gap-2">
+                  <Eye className="w-4 h-4" />
+                  Gerar Recibos
+                </Button>
+                {grainRecibos.length > 0 && (
+                  <>
+                    <Button onClick={handlePrintAll} variant="outline" className="gap-2">
+                      <Printer className="w-4 h-4" />
+                      Imprimir Todos
+                    </Button>
+                    <Button variant="outline" onClick={() => handleReset('grain')} className="gap-2">
+                      <Trash2 className="w-4 h-4" />
+                      Limpar
+                    </Button>
+                  </>
+                )}
+              </div>
             </CardContent>
           </Card>
 
           {/* Grain Recibos Preview */}
-          {grainRecibos.length > 0 && grainManifestData && showGrainPreview && (
+          {grainRecibos.length > 0 && showGrainPreview && (
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -349,9 +397,9 @@ export function ReciboManager() {
                 <div className="border rounded-lg overflow-hidden">
                   <GrainRecibo
                     date={grainDate ? format(grainDate, 'dd/MM/yyyy') : ''}
-                    vessel={grainManifestData.vessel}
+                    vessel={grainVessel}
                     cargo={grainCargo}
-                    port={grainManifestData.port}
+                    port={grainPort}
                     shipper={grainRecibos[currentGrainIndex].shipper}
                     blNumbers={grainRecibos[currentGrainIndex].blNumbers}
                     quantity={grainRecibos[currentGrainIndex].quantity}
@@ -362,15 +410,15 @@ export function ReciboManager() {
           )}
 
           {/* Hidden recibos for printing */}
-          {grainRecibos.length > 0 && grainManifestData && (
+          {grainRecibos.length > 0 && (
             <div ref={printRef} className="hidden print:block print:space-y-0">
               {grainRecibos.map((recibo, idx) => (
                 <div key={idx} className="print:break-after-page">
                   <GrainRecibo
                     date={grainDate ? format(grainDate, 'dd/MM/yyyy') : ''}
-                    vessel={grainManifestData.vessel}
+                    vessel={grainVessel}
                     cargo={grainCargo}
-                    port={grainManifestData.port}
+                    port={grainPort}
                     shipper={recibo.shipper}
                     blNumbers={recibo.blNumbers}
                     quantity={recibo.quantity}

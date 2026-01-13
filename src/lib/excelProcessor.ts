@@ -23,7 +23,7 @@ const normalizeColumnName = (columnName: string): string => {
 };
 
 // Fixed unit value
-const VALOR_UNITARIO = 300;
+const VALOR_UNITARIO = 350;
 
 export interface ProcessingResult {
   success: boolean;

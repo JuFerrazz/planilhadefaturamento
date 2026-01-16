@@ -146,7 +146,7 @@ export const BILLING_INSTRUCTIONS: BillingInstruction[] = [
     shipper: 'BTG PACTUAL COMMODITIES SERTRADING S.A.',
     aliases: ['BTG PACTUAL', 'BTG', 'SERTRADING'],
     remarks: 'NÃO PAGA BL FEE. (04.626.426/0001-06)',
-    skipBilling: false, // Aparece na planilha mas com valor zerado
+    skipBilling: true, // Não aparece na planilha
   },
 ];
 

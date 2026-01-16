@@ -136,30 +136,33 @@ export function processPastedData(text: string): ProcessingResult {
     });
 
     // Generate output data from grouped records with billing instructions applied
-    const outputData: OutputRow[] = Object.values(groupedData).map(group => {
-      const qtdBLs = group.blNumbers.length;
-      
-      // Apply billing instructions
-      const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
-      // Se valorZerado, o total é 0
-      const valorTotal = billingInfo.valorZerado ? 0 : billingInfo.valorMultiplier * VALOR_UNITARIO;
+    // Filter out shippers that are exempt from billing (skipBilling)
+    const outputData: OutputRow[] = Object.values(groupedData)
+      .map(group => {
+        const qtdBLs = group.blNumbers.length;
+        
+        // Apply billing instructions
+        const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
+        // Se valorZerado, o total é 0
+        const valorTotal = billingInfo.valorZerado ? 0 : billingInfo.valorMultiplier * VALOR_UNITARIO;
 
-      return {
-        'BL nbr': group.blNumbers.join('/'),
-        'Name of shipper': group.shipper,
-        'CNPJ/VAT': billingInfo.cnpj,
-        'Qtd BLs': qtdBLs, // Quantidade real de BLs
-        'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
-        'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
-        'Customs Broker': group.broker,
-        'Contato': billingInfo.contact,
-        'Não Faturar': billingInfo.skipBilling,
-        '_cnpjAlterado': billingInfo.cnpjAlterado,
-        '_destacar': billingInfo.destacar,
-        '_shipperVermelho': billingInfo.shipperVermelho,
-        '_valorZerado': billingInfo.valorZerado,
-      };
-    });
+        return {
+          'BL nbr': group.blNumbers.join('/'),
+          'Name of shipper': group.shipper,
+          'CNPJ/VAT': billingInfo.cnpj,
+          'Qtd BLs': qtdBLs, // Quantidade real de BLs
+          'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
+          'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
+          'Customs Broker': group.broker,
+          'Contato': billingInfo.contact,
+          'Não Faturar': billingInfo.skipBilling,
+          '_cnpjAlterado': billingInfo.cnpjAlterado,
+          '_destacar': billingInfo.destacar,
+          '_shipperVermelho': billingInfo.shipperVermelho,
+          '_valorZerado': billingInfo.valorZerado,
+        };
+      })
+      .filter(row => !row['Não Faturar']); // Remove shippers isentos da planilha
 
     return { success: true, data: outputData };
   } catch (error) {
@@ -372,30 +375,33 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
         console.log('Grouped data:', groupedData);
 
         // Generate output data from grouped records with billing instructions applied
-        const outputData: OutputRow[] = Object.values(groupedData).map(group => {
-          const qtdBLs = group.blNumbers.length;
-          
-          // Apply billing instructions
-          const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
-          // Se valorZerado, o total é 0
-          const valorTotal = billingInfo.valorZerado ? 0 : billingInfo.valorMultiplier * VALOR_UNITARIO;
+        // Filter out shippers that are exempt from billing (skipBilling)
+        const outputData: OutputRow[] = Object.values(groupedData)
+          .map(group => {
+            const qtdBLs = group.blNumbers.length;
+            
+            // Apply billing instructions
+            const billingInfo = applyBillingInstruction(group.shipper, group.cnpj, qtdBLs);
+            // Se valorZerado, o total é 0
+            const valorTotal = billingInfo.valorZerado ? 0 : billingInfo.valorMultiplier * VALOR_UNITARIO;
 
-          return {
-            'BL nbr': group.blNumbers.join('/'),
-            'Name of shipper': group.shipper,
-            'CNPJ/VAT': billingInfo.cnpj,
-            'Qtd BLs': qtdBLs, // Quantidade real de BLs
-            'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
-            'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
-            'Customs Broker': group.broker,
-            'Contato': billingInfo.contact,
-            'Não Faturar': billingInfo.skipBilling,
-            '_cnpjAlterado': billingInfo.cnpjAlterado,
-            '_destacar': billingInfo.destacar,
-            '_shipperVermelho': billingInfo.shipperVermelho,
-            '_valorZerado': billingInfo.valorZerado,
-          };
-        });
+            return {
+              'BL nbr': group.blNumbers.join('/'),
+              'Name of shipper': group.shipper,
+              'CNPJ/VAT': billingInfo.cnpj,
+              'Qtd BLs': qtdBLs, // Quantidade real de BLs
+              'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
+              'Valor total': `R$ ${valorTotal.toFixed(2).replace('.', ',')}`,
+              'Customs Broker': group.broker,
+              'Contato': billingInfo.contact,
+              'Não Faturar': billingInfo.skipBilling,
+              '_cnpjAlterado': billingInfo.cnpjAlterado,
+              '_destacar': billingInfo.destacar,
+              '_shipperVermelho': billingInfo.shipperVermelho,
+              '_valorZerado': billingInfo.valorZerado,
+            };
+          })
+          .filter(row => !row['Não Faturar']); // Remove shippers isentos da planilha
 
         console.log('Output data:', outputData);
         resolve({ success: true, data: outputData });

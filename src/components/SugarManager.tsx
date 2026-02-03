@@ -1,115 +1,44 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Upload, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2, Sparkles, Mail, Printer, Eye, ChevronLeft, ChevronRight, Calendar, MapPin, Package } from 'lucide-react';
+import { Upload, CheckCircle2, XCircle, Loader2, Download, RefreshCw, ClipboardPaste, Copy, Ship, Trash2, Sparkles, Mail, Printer, Eye, ChevronLeft, ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { processExcelFile, generateExcelDownload, processPastedData, generateClipboardData, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
 import { findDespachanteEmail } from '@/lib/despachantesEmails';
+import { parsePastedData, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { GrainRecibo } from './GrainRecibo';
+import { SugarRecibo } from './SugarRecibo';
 
 type UploadState = 'idle' | 'dragging' | 'processing' | 'success' | 'error';
-type CargoType = 'SBS' | 'SBM' | 'CORN';
 
-interface GrainReciboData {
-  shipper: string;
-  blNumbers: string[];
-  quantity: number;
+interface SugarReciboGroupData {
+  customsBroker: string;
+  entries: SugarEntry[];
 }
 
-// Parse spreadsheet data for recibos (extracts quantity info)
-interface RawEntry {
-  blNumber: string;
-  shipper: string;
-  quantity: number;
-  broker: string;
-}
-
-export function UnifiedManager() {
+export function SugarManager() {
   const [state, setState] = useState<UploadState>('idle');
   const [fileName, setFileName] = useState<string>('');
   const [shipName, setShipName] = useState<string>('');
   const [result, setResult] = useState<ProcessingResult | null>(null);
   const [processedData, setProcessedData] = useState<OutputRow[] | null>(null);
-  const [rawEntries, setRawEntries] = useState<RawEntry[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Recibos state
   const [reciboDate, setReciboDate] = useState<Date | undefined>(new Date());
-  const [reciboCargo, setReciboCargo] = useState<CargoType>('SBS');
   const [reciboPort, setReciboPort] = useState('');
-  const [grainRecibos, setGrainRecibos] = useState<GrainReciboData[]>([]);
+  const [sugarRecibos, setSugarRecibos] = useState<SugarReciboGroupData[]>([]);
   const [showReciboPreview, setShowReciboPreview] = useState(false);
   const [currentReciboIndex, setCurrentReciboIndex] = useState(0);
   const [activeOutputTab, setActiveOutputTab] = useState<'faturamento' | 'recibos'>('faturamento');
-
-  // Parse raw entries from pasted/uploaded data for recibos
-  const parseRawEntries = useCallback((text: string): RawEntry[] => {
-    const lines = text.trim().split(/\r?\n/);
-    if (lines.length < 1) return [];
-
-    const firstLineValues = lines[0].split('\t').map(h => h.trim());
-    const hasHeader = firstLineValues.some(v => 
-      v.toLowerCase().includes('shipper') || 
-      v.toLowerCase().includes('bl') ||
-      v.toLowerCase().includes('qtd')
-    );
-
-    const headers = hasHeader 
-      ? firstLineValues.map(h => h.toLowerCase())
-      : ['name of shipper', 'qtd per bl', 'bl nbr', 'qtd per du-e', 'cnpj/vat', 'du-e', 'customs broker'];
-    
-    const dataStartIndex = hasHeader ? 1 : 0;
-
-    // Find column indices
-    const shipperIdx = headers.findIndex(h => h.includes('shipper'));
-    const blIdx = headers.findIndex(h => h === 'bl nbr' || h.includes('bl n'));
-    const qtyIdx = headers.findIndex(h => h.includes('qtd per bl') || (h.includes('qtd') && !h.includes('du')));
-    const brokerIdx = headers.findIndex(h => h.includes('broker') || h.includes('customs'));
-
-    const entries: RawEntry[] = [];
-    for (let i = dataStartIndex; i < lines.length; i++) {
-      const values = lines[i].split('\t');
-      const shipper = values[shipperIdx]?.trim() || '';
-      const blNumber = values[blIdx]?.trim() || '';
-      const broker = values[brokerIdx]?.trim() || '';
-      
-      // Parse quantity
-      let qtyRaw = values[qtyIdx]?.trim() || '0';
-      let quantity = 0;
-      if (qtyRaw) {
-        // Handle Brazilian/US number formats
-        const cleanQty = qtyRaw.replace(/\s/g, '');
-        if (cleanQty.includes(',') && cleanQty.includes('.')) {
-          const lastDot = cleanQty.lastIndexOf('.');
-          const lastComma = cleanQty.lastIndexOf(',');
-          if (lastComma > lastDot) {
-            quantity = parseFloat(cleanQty.replace(/\./g, '').replace(',', '.'));
-          } else {
-            quantity = parseFloat(cleanQty.replace(/,/g, ''));
-          }
-        } else if (cleanQty.includes(',')) {
-          quantity = parseFloat(cleanQty.replace(',', '.'));
-        } else {
-          quantity = parseFloat(cleanQty) || 0;
-        }
-      }
-
-      if (shipper && blNumber) {
-        entries.push({ blNumber, shipper, quantity, broker });
-      }
-    }
-    
-    return entries;
-  }, []);
+  const [rawPastedText, setRawPastedText] = useState<string>('');
 
   const handleProcessingResult = useCallback((processingResult: ProcessingResult, sourceName: string, rawText?: string) => {
     setResult(processingResult);
@@ -118,36 +47,23 @@ export function UnifiedManager() {
       setProcessedData(processingResult.data);
       setState('success');
       
-      // Parse raw entries for recibos if we have the raw text
+      // Parse raw data for sugar recibos (grouped by customs broker)
       if (rawText) {
-        const entries = parseRawEntries(rawText);
-        setRawEntries(entries);
-        
-        // Auto-generate recibos grouped by shipper
-        const grouped = new Map<string, { blNumbers: string[]; totalQuantity: number }>();
-        entries.forEach(entry => {
-          const shipper = entry.shipper.toUpperCase();
-          if (grouped.has(shipper)) {
-            const existing = grouped.get(shipper)!;
-            existing.blNumbers.push(entry.blNumber);
-            existing.totalQuantity += entry.quantity;
-          } else {
-            grouped.set(shipper, {
-              blNumbers: [entry.blNumber],
-              totalQuantity: entry.quantity
+        setRawPastedText(rawText);
+        const data = parsePastedData(rawText);
+        if (data && data.entries.length > 0) {
+          const grouped = groupByCustomsBroker(data.entries);
+          const recibos: SugarReciboGroupData[] = [];
+          
+          grouped.forEach((entries, customsBroker) => {
+            recibos.push({
+              customsBroker,
+              entries
             });
-          }
-        });
-        
-        const recibos: GrainReciboData[] = [];
-        grouped.forEach((value, shipper) => {
-          recibos.push({
-            shipper,
-            blNumbers: value.blNumbers,
-            quantity: value.totalQuantity
           });
-        });
-        setGrainRecibos(recibos);
+          
+          setSugarRecibos(recibos);
+        }
       }
       
       toast.success(`Dados processados com sucesso! ${processingResult.data.length} registros para faturamento.`);
@@ -155,7 +71,7 @@ export function UnifiedManager() {
       setState('error');
       toast.error(processingResult.error || 'Erro ao processar dados');
     }
-  }, [parseRawEntries]);
+  }, []);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
@@ -167,11 +83,9 @@ export function UnifiedManager() {
     setState('processing');
     setResult(null);
     setProcessedData(null);
-    setRawEntries([]);
-    setGrainRecibos([]);
+    setSugarRecibos([]);
 
     const processingResult = await processExcelFile(file);
-    // For file upload, we need to read raw content - for now just process faturamento
     handleProcessingResult(processingResult, file.name);
   }, [handleProcessingResult]);
 
@@ -188,8 +102,7 @@ export function UnifiedManager() {
     setState('processing');
     setResult(null);
     setProcessedData(null);
-    setRawEntries([]);
-    setGrainRecibos([]);
+    setSugarRecibos([]);
 
     const processingResult = processPastedData(text);
     handleProcessingResult(processingResult, 'Dados colados', text);
@@ -294,11 +207,11 @@ export function UnifiedManager() {
     setShipName('');
     setResult(null);
     setProcessedData(null);
-    setRawEntries([]);
-    setGrainRecibos([]);
+    setSugarRecibos([]);
     setShowReciboPreview(false);
     setCurrentReciboIndex(0);
     setReciboPort('');
+    setRawPastedText('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -318,8 +231,7 @@ export function UnifiedManager() {
     setState('processing');
     setResult(null);
     setProcessedData(null);
-    setRawEntries([]);
-    setGrainRecibos([]);
+    setSugarRecibos([]);
 
     const processingResult = processPastedData(text);
     handleProcessingResult(processingResult, 'Dados colados', text);
@@ -331,12 +243,12 @@ export function UnifiedManager() {
 
   // Carousel navigation
   const nextRecibo = useCallback(() => {
-    setCurrentReciboIndex(prev => (prev + 1) % grainRecibos.length);
-  }, [grainRecibos.length]);
+    setCurrentReciboIndex(prev => (prev + 1) % sugarRecibos.length);
+  }, [sugarRecibos.length]);
 
   const prevRecibo = useCallback(() => {
-    setCurrentReciboIndex(prev => (prev - 1 + grainRecibos.length) % grainRecibos.length);
-  }, [grainRecibos.length]);
+    setCurrentReciboIndex(prev => (prev - 1 + sugarRecibos.length) % sugarRecibos.length);
+  }, [sugarRecibos.length]);
 
   return (
     <div className="w-full max-w-4xl mx-auto print:max-w-none print:w-full">
@@ -478,10 +390,10 @@ export function UnifiedManager() {
                   <Sparkles className="w-4 h-4" />
                   {processedData.length} para faturamento
                 </span>
-                {grainRecibos.length > 0 && (
+                {sugarRecibos.length > 0 && (
                   <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
                     <Printer className="w-4 h-4" />
-                    {grainRecibos.length} recibos
+                    {sugarRecibos.length} recibos
                   </span>
                 )}
               </div>
@@ -524,7 +436,7 @@ export function UnifiedManager() {
                 </TabsTrigger>
                 <TabsTrigger value="recibos" className="gap-2">
                   <Printer className="w-4 h-4" />
-                  Recibos ({grainRecibos.length})
+                  Recibos ({sugarRecibos.length})
                 </TabsTrigger>
               </TabsList>
 
@@ -573,7 +485,7 @@ export function UnifiedManager() {
               {/* Recibos Tab */}
               <TabsContent value="recibos" className="space-y-4 mt-4">
                 {/* Recibo Config */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-xs">
                       <Calendar className="w-3 h-3" />
@@ -598,23 +510,6 @@ export function UnifiedManager() {
                   
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-xs">
-                      <Package className="w-3 h-3" />
-                      Carga
-                    </Label>
-                    <Select value={reciboCargo} onValueChange={(v) => setReciboCargo(v as CargoType)}>
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SBS">SBS</SelectItem>
-                        <SelectItem value="SBM">SBM</SelectItem>
-                        <SelectItem value="CORN">CORN</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-xs">
                       <MapPin className="w-3 h-3" />
                       Porto
                     </Label>
@@ -629,7 +524,7 @@ export function UnifiedManager() {
 
                 {/* Recibo Actions */}
                 <div className="flex gap-3 justify-center flex-wrap">
-                  {grainRecibos.length > 0 && (
+                  {sugarRecibos.length > 0 && (
                     <>
                       <Button onClick={() => setShowReciboPreview(!showReciboPreview)} variant="outline" className="gap-2">
                         <Eye className="w-4 h-4" />
@@ -644,8 +539,8 @@ export function UnifiedManager() {
                 </div>
 
                 {/* Preview Carousel */}
-                {showReciboPreview && grainRecibos.length > 0 && (
-                  <Card className="mt-4">
+                {showReciboPreview && sugarRecibos.length > 0 && (
+                  <Card className="mt-4 print:hidden">
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base">Preview dos Recibos</CardTitle>
@@ -654,18 +549,18 @@ export function UnifiedManager() {
                             variant="outline"
                             size="sm"
                             onClick={prevRecibo}
-                            disabled={grainRecibos.length <= 1}
+                            disabled={sugarRecibos.length <= 1}
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </Button>
                           <span className="text-sm text-muted-foreground">
-                            {currentReciboIndex + 1} de {grainRecibos.length}
+                            {currentReciboIndex + 1} de {sugarRecibos.length}
                           </span>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={nextRecibo}
-                            disabled={grainRecibos.length <= 1}
+                            disabled={sugarRecibos.length <= 1}
                           >
                             <ChevronRight className="w-4 h-4" />
                           </Button>
@@ -674,14 +569,12 @@ export function UnifiedManager() {
                     </CardHeader>
                     <CardContent>
                       <div className="border rounded-lg overflow-hidden max-h-[60vh] overflow-y-auto">
-                        <GrainRecibo
+                        <SugarRecibo
                           date={reciboDate ? format(reciboDate, 'dd/MM/yyyy') : ''}
                           vessel={shipName}
-                          cargo={reciboCargo}
                           port={reciboPort}
-                          shipper={grainRecibos[currentReciboIndex].shipper}
-                          blNumbers={grainRecibos[currentReciboIndex].blNumbers}
-                          quantity={grainRecibos[currentReciboIndex].quantity}
+                          customsBroker={sugarRecibos[currentReciboIndex].customsBroker}
+                          entries={sugarRecibos[currentReciboIndex].entries}
                         />
                       </div>
                     </CardContent>
@@ -706,18 +599,16 @@ export function UnifiedManager() {
       </div>
 
       {/* Hidden recibos for printing */}
-      {grainRecibos.length > 0 && (
+      {sugarRecibos.length > 0 && (
         <div className="hidden print:block print:space-y-0">
-          {grainRecibos.map((recibo, idx) => (
+          {sugarRecibos.map((recibo, idx) => (
             <div key={idx} className="print:break-after-page">
-              <GrainRecibo
+              <SugarRecibo
                 date={reciboDate ? format(reciboDate, 'dd/MM/yyyy') : ''}
                 vessel={shipName}
-                cargo={reciboCargo}
                 port={reciboPort}
-                shipper={recibo.shipper}
-                blNumbers={recibo.blNumbers}
-                quantity={recibo.quantity}
+                customsBroker={recibo.customsBroker}
+                entries={recibo.entries}
               />
             </div>
           ))}

@@ -328,7 +328,7 @@ export const BLManager = () => {
             </Button>
           </div>
 
-          {/* BL cards com drag and drop */}
+          {/* BL cards com drag and drop e separadores de atracação */}
           <ScrollArea className="w-full">
             <div className="flex gap-2 pb-2">
               {blList.map((bl, idx) => {
@@ -339,59 +339,74 @@ export const BLManager = () => {
                 const isDragging = draggedIndex === idx;
                 const isDragOver = dragOverIndex === idx;
                 
+                // Verifica se precisa de separador antes deste BL
+                const needsSeparator = idx > 0 && blList[idx - 1].atracaoId !== bl.atracaoId;
+                
                 return (
-                  <div
-                    key={bl.id}
-                    draggable={blList.length > 1}
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => handleDragOver(e, idx)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, idx)}
-                    className={`
-                      flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
-                      ${isActive 
-                        ? 'bg-primary text-primary-foreground border-primary' 
-                        : 'bg-card hover:bg-muted border-border'
-                      }
-                      ${isDragging ? 'opacity-50 scale-95' : ''}
-                      ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}
-                      ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
-                    `}
-                    onClick={() => setActiveIndex(idx)}
-                    title={blList.length > 1 ? "Arraste para reordenar" : ""}
-                  >
-                    {/* Drag handle - só aparece quando há mais de 1 BL */}
-                    {blList.length > 1 && (
-                      <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                        <GripVertical className="w-3 h-3" />
+                  <div key={bl.id} className="flex items-center">
+                    {/* Separador entre atracações */}
+                    {needsSeparator && (
+                      <div className="flex flex-col items-center mx-2">
+                        <div className="w-px h-8 bg-border/60" />
+                        <div className="text-xs text-muted-foreground/70 whitespace-nowrap transform -rotate-90 origin-center mt-1 mb-1">
+                          {atr?.name || 'Atracação'}
+                        </div>
+                        <div className="w-px h-8 bg-border/60" />
                       </div>
                     )}
                     
-                    <span className="font-medium whitespace-nowrap">
-                      BL #{bl.blNumber || idx + 1}
-                    </span>
-                    <Badge 
-                      variant={status === 'complete' ? 'default' : 'secondary'}
-                      className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
+                    <div
+                      draggable={blList.length > 1}
+                      onDragStart={(e) => handleDragStart(e, idx)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, idx)}
+                      className={`
+                        flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
+                        ${isActive 
+                          ? 'bg-primary text-primary-foreground border-primary' 
+                          : 'bg-card hover:bg-muted border-border'
+                        }
+                        ${isDragging ? 'opacity-50 scale-95' : ''}
+                        ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}
+                        ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
+                      `}
+                      onClick={() => setActiveIndex(idx)}
+                      title={blList.length > 1 ? "Arraste para reordenar" : ""}
                     >
-                      {status === 'complete' ? '✓' : pendingCount}
-                    </Badge>
-                    
-                    {blList.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveBL(idx);
-                        }}
-                        title="Remover BL"
+                      {/* Drag handle - só aparece quando há mais de 1 BL */}
+                      {blList.length > 1 && (
+                        <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                          <GripVertical className="w-3 h-3" />
+                        </div>
+                      )}
+                      
+                      <span className="font-medium whitespace-nowrap">
+                        BL #{bl.blNumber || idx + 1}
+                      </span>
+                      <Badge 
+                        variant={status === 'complete' ? 'default' : 'secondary'}
+                        className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
                       >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
+                        {status === 'complete' ? '✓' : pendingCount}
+                      </Badge>
+                      
+                      {blList.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveBL(idx);
+                          }}
+                          title="Remover BL"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}

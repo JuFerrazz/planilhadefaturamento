@@ -152,6 +152,11 @@ export const BLManager = () => {
     // Troca posições
     [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
     
+    // Renumera todos os BLs para refletir a nova ordem
+    newList.forEach((bl, idx) => {
+      bl.blNumber = String(idx + 1);
+    });
+    
     setBlList(newList);
     
     // Ajusta o índice ativo se necessário
@@ -168,6 +173,11 @@ export const BLManager = () => {
     const newList = [...blList];
     // Troca posições
     [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
+    
+    // Renumera todos os BLs para refletir a nova ordem
+    newList.forEach((bl, idx) => {
+      bl.blNumber = String(idx + 1);
+    });
     
     setBlList(newList);
     
@@ -324,35 +334,37 @@ export const BLManager = () => {
                       {status === 'complete' ? '✓' : pendingCount}
                     </Badge>
                     
-                    {/* Move buttons */}
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveBLUp(idx);
-                        }}
-                        disabled={idx === 0}
-                        title="Mover para cima"
-                      >
-                        <ArrowUp className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveBLDown(idx);
-                        }}
-                        disabled={idx === blList.length - 1}
-                        title="Mover para baixo"
-                      >
-                        <ArrowDown className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    {/* Move buttons - mais claros e intuitivos */}
+                    {blList.length > 1 && (
+                      <div className="flex flex-col gap-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-4 w-6 rounded-sm ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveBLUp(idx);
+                          }}
+                          disabled={idx === 0}
+                          title={`Mover BL #${bl.blNumber || idx + 1} para cima`}
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-4 w-6 rounded-sm ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveBLDown(idx);
+                          }}
+                          disabled={idx === blList.length - 1}
+                          title={`Mover BL #${bl.blNumber || idx + 1} para baixo`}
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
                     
                     {blList.length > 1 && (
                       <Button

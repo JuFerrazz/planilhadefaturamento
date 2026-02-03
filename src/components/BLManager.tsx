@@ -346,12 +346,8 @@ export const BLManager = () => {
                   <div key={bl.id} className="flex items-center">
                     {/* Separador entre atracações */}
                     {needsSeparator && (
-                      <div className="flex flex-col items-center mx-2">
-                        <div className="w-px h-8 bg-border/60" />
-                        <div className="text-xs text-muted-foreground/70 whitespace-nowrap transform -rotate-90 origin-center mt-1 mb-1">
-                          {atr?.name || 'Atracação'}
-                        </div>
-                        <div className="w-px h-8 bg-border/60" />
+                      <div className="flex items-center mx-3">
+                        <div className="w-px h-12 bg-border/50" />
                       </div>
                     )}
                     

@@ -366,7 +366,7 @@ export function ReciboManager() {
 
           {/* Grain Recibos Preview */}
           {grainRecibos.length > 0 && showGrainPreview && (
-            <Card>
+            <Card className="print:hidden">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Preview dos Recibos</CardTitle>
@@ -528,7 +528,7 @@ export function ReciboManager() {
 
           {/* Sugar Recibos Preview */}
           {sugarRecibos.length > 0 && showSugarPreview && (
-            <Card>
+            <Card className="print:hidden">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Preview dos Recibos</CardTitle>

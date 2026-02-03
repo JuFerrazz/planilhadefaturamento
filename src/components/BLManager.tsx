@@ -194,6 +194,21 @@ export const BLManager = () => {
     // Insere na nova posição
     newList.splice(dropIndex, 0, draggedItem);
     
+    // Determina a atracação da nova posição baseada nos BLs vizinhos
+    let newAtracaoId = draggedItem.atracaoId; // Mantém a original por padrão
+    
+    // Verifica o BL anterior na nova posição
+    if (dropIndex > 0) {
+      newAtracaoId = newList[dropIndex - 1].atracaoId;
+    }
+    // Se não há BL anterior, verifica o próximo
+    else if (dropIndex < newList.length - 1) {
+      newAtracaoId = newList[dropIndex + 1].atracaoId;
+    }
+    
+    // Atualiza a atracação do BL movido
+    draggedItem.atracaoId = newAtracaoId;
+    
     // Renumera todos os BLs para refletir a nova ordem
     newList.forEach((bl, idx) => {
       bl.blNumber = String(idx + 1);

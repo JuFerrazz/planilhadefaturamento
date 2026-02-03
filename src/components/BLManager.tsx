@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, MoveLeft, MoveRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -145,11 +145,11 @@ export const BLManager = () => {
     });
   }, [blList, activeIndex]);
 
-  const handleMoveBLUp = useCallback((index: number) => {
-    if (index === 0) return; // Já está no topo
+  const handleMoveBLLeft = useCallback((index: number) => {
+    if (index === 0) return; // Já está no início
     
     const newList = [...blList];
-    // Troca posições
+    // Troca posições (move para esquerda = posição anterior)
     [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
     
     // Renumera todos os BLs para refletir a nova ordem
@@ -167,11 +167,11 @@ export const BLManager = () => {
     }
   }, [blList, activeIndex]);
 
-  const handleMoveBLDown = useCallback((index: number) => {
+  const handleMoveBLRight = useCallback((index: number) => {
     if (index === blList.length - 1) return; // Já está no final
     
     const newList = [...blList];
-    // Troca posições
+    // Troca posições (move para direita = próxima posição)
     [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
     
     // Renumera todos os BLs para refletir a nova ordem
@@ -334,34 +334,35 @@ export const BLManager = () => {
                       {status === 'complete' ? '✓' : pendingCount}
                     </Badge>
                     
-                    {/* Move buttons - mais claros e intuitivos */}
+                    {/* Move buttons - horizontais e mais intuitivos */}
                     {blList.length > 1 && (
-                      <div className="flex flex-col gap-0">
+                      <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-background/50">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`h-4 w-6 rounded-sm ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
+                          className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleMoveBLUp(idx);
+                            handleMoveBLLeft(idx);
                           }}
                           disabled={idx === 0}
-                          title={`Mover BL #${bl.blNumber || idx + 1} para cima`}
+                          title={`Mover BL #${bl.blNumber || idx + 1} para esquerda`}
                         >
-                          <ArrowUp className="w-3 h-3" />
+                          <MoveLeft className="w-3 h-3" />
                         </Button>
+                        <div className="w-px h-3 bg-border" />
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`h-4 w-6 rounded-sm ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
+                          className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleMoveBLDown(idx);
+                            handleMoveBLRight(idx);
                           }}
                           disabled={idx === blList.length - 1}
-                          title={`Mover BL #${bl.blNumber || idx + 1} para baixo`}
+                          title={`Mover BL #${bl.blNumber || idx + 1} para direita`}
                         >
-                          <ArrowDown className="w-3 h-3" />
+                          <MoveRight className="w-3 h-3" />
                         </Button>
                       </div>
                     )}

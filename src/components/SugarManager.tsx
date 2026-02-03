@@ -12,7 +12,6 @@ import { findDespachanteEmail } from '@/lib/despachantesEmails';
 import { parsePastedData, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { toast } from 'sonner';
 import { SugarRecibo } from './SugarRecibo';
 
 type UploadState = 'idle' | 'dragging' | 'processing' | 'success' | 'error';
@@ -66,16 +65,13 @@ export function SugarManager() {
         }
       }
       
-      toast.success(`Dados processados com sucesso! ${processingResult.data.length} registros para faturamento.`);
     } else {
       setState('error');
-      toast.error(processingResult.error || 'Erro ao processar dados');
     }
   }, []);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-      toast.error('Por favor, selecione um arquivo Excel (.xlsx ou .xls)');
       return;
     }
 
@@ -150,7 +146,6 @@ export function SugarManager() {
         ? fileName.replace(/\.(xlsx|xls)$/i, '_base.xlsx')
         : 'planilha_base.xlsx';
       generateExcelDownload(processedData, outputFilename);
-      toast.success('Download iniciado!');
     }
   }, [processedData, fileName]);
 
@@ -164,10 +159,8 @@ export function SugarManager() {
           'text/html': new Blob([html], { type: 'text/html' })
         });
         await navigator.clipboard.write([clipboardItem]);
-        toast.success('Tabela copiada! Cole no Excel, Outlook ou e-mail.');
       } catch {
         await navigator.clipboard.writeText(text);
-        toast.success('Tabela copiada!');
       }
     }
   }, [processedData, shipName]);
@@ -175,9 +168,8 @@ export function SugarManager() {
   const handleCopyEmails = useCallback(async (emails: string) => {
     try {
       await navigator.clipboard.writeText(emails);
-      toast.success('Emails copiados para a área de transferência!');
     } catch {
-      toast.error('Erro ao copiar emails');
+      // Silent fail
     }
   }, []);
 
@@ -222,7 +214,6 @@ export function SugarManager() {
     if (!text) return;
 
     if (!text.includes('\t')) {
-      toast.error('Os dados colados não parecem ser de uma planilha. Copie células do Excel com Ctrl+C.');
       return;
     }
 

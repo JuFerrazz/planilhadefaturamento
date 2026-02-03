@@ -9,7 +9,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { toast } from 'sonner';
 import { GrainRecibo } from './GrainRecibo';
 
 type CargoType = 'SBS' | 'SBM' | 'CORN';
@@ -61,12 +60,10 @@ export function GrainReciboManager() {
     const validEntries = grainEntries.filter(e => e.blNumber.trim() && e.shipper.trim() && e.quantity.trim());
     
     if (validEntries.length === 0) {
-      toast.error('Preencha pelo menos uma entrada completa (BL, Shipper e Quantidade)');
       return;
     }
 
     if (!grainVessel.trim() || !grainPort.trim()) {
-      toast.error('Preencha o nome do navio e porto');
       return;
     }
 
@@ -101,7 +98,6 @@ export function GrainReciboManager() {
     setGrainRecibos(recibos);
     setShowGrainPreview(true);
     setCurrentGrainIndex(0);
-    toast.success(`${recibos.length} recibo(s) gerado(s)`);
   }, [grainEntries, grainVessel, grainPort]);
 
   const handlePrintAll = useCallback(() => {

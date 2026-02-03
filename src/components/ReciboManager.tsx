@@ -11,7 +11,6 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { toast } from 'sonner';
 import { parsePastedData, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
 import { GrainRecibo } from './GrainRecibo';
 import { SugarRecibo } from './SugarRecibo';
@@ -84,12 +83,10 @@ export function ReciboManager() {
     const validEntries = grainEntries.filter(e => e.blNumber.trim() && e.shipper.trim() && e.quantity.trim());
     
     if (validEntries.length === 0) {
-      toast.error('Preencha pelo menos uma entrada completa (BL, Shipper e Quantidade)');
       return;
     }
 
     if (!grainVessel.trim() || !grainPort.trim()) {
-      toast.error('Preencha o nome do navio e porto');
       return;
     }
 
@@ -124,13 +121,11 @@ export function ReciboManager() {
     setGrainRecibos(recibos);
     setShowGrainPreview(true);
     setCurrentGrainIndex(0);
-    toast.success(`${recibos.length} recibo(s) gerado(s)`);
   }, [grainEntries, grainVessel, grainPort]);
 
   // Handle Sugar pasted data
   const handleSugarPaste = useCallback(() => {
     if (!sugarPastedText.trim()) {
-      toast.error('Cole os dados da planilha primeiro');
       return;
     }
     
@@ -139,7 +134,6 @@ export function ReciboManager() {
     const data = parsePastedData(sugarPastedText);
     
     if (!data || data.entries.length === 0) {
-      toast.error('Não foi possível extrair dados. Verifique se as colunas estão corretas: BL nbr, Name of shipper, Qtd per BL, Customs broker');
       return;
     }
     

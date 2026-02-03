@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { processExcelFile, generateExcelDownload, processPastedData, generateClipboardData, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
 import { findDespachanteEmail } from '@/lib/despachantesEmails';
-import { toast } from 'sonner';
 
 type UploadState = 'idle' | 'dragging' | 'processing' | 'success' | 'error';
 
@@ -24,16 +23,13 @@ export function FileUploader() {
     if (processingResult.success && processingResult.data) {
       setProcessedData(processingResult.data);
       setState('success');
-      toast.success(`Dados processados com sucesso! ${processingResult.data.length} registros encontrados.`);
     } else {
       setState('error');
-      toast.error(processingResult.error || 'Erro ao processar dados');
     }
   }, []);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-      toast.error('Por favor, selecione um arquivo Excel (.xlsx ou .xls)');
       return;
     }
 
@@ -106,7 +102,6 @@ export function FileUploader() {
         ? fileName.replace(/\.(xlsx|xls)$/i, '_base.xlsx')
         : 'planilha_base.xlsx';
       generateExcelDownload(processedData, outputFilename);
-      toast.success('Download iniciado!');
     }
   }, [processedData, fileName]);
 
@@ -120,10 +115,8 @@ export function FileUploader() {
           'text/html': new Blob([html], { type: 'text/html' })
         });
         await navigator.clipboard.write([clipboardItem]);
-        toast.success('Tabela copiada! Cole no Excel, Outlook ou e-mail.');
       } catch {
         await navigator.clipboard.writeText(text);
-        toast.success('Tabela copiada!');
       }
     }
   }, [processedData, shipName]);
@@ -131,9 +124,8 @@ export function FileUploader() {
   const handleCopyEmails = useCallback(async (emails: string) => {
     try {
       await navigator.clipboard.writeText(emails);
-      toast.success('Emails copiados para a área de transferência!');
     } catch {
-      toast.error('Erro ao copiar emails');
+      // Silent fail
     }
   }, []);
 
@@ -174,7 +166,6 @@ export function FileUploader() {
     if (!text) return;
 
     if (!text.includes('\t')) {
-      toast.error('Os dados colados não parecem ser de uma planilha. Copie células do Excel com Ctrl+C.');
       return;
     }
 

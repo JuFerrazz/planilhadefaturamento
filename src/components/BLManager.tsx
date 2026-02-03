@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor } from 'lucide-react';
+import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -143,6 +143,40 @@ export const BLManager = () => {
       title: "Ficha removida",
       description: `Ficha #${index + 1} foi removida.`,
     });
+  }, [blList, activeIndex]);
+
+  const handleMoveBLUp = useCallback((index: number) => {
+    if (index === 0) return; // Já está no topo
+    
+    const newList = [...blList];
+    // Troca posições
+    [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+    
+    setBlList(newList);
+    
+    // Ajusta o índice ativo se necessário
+    if (activeIndex === index) {
+      setActiveIndex(index - 1);
+    } else if (activeIndex === index - 1) {
+      setActiveIndex(index);
+    }
+  }, [blList, activeIndex]);
+
+  const handleMoveBLDown = useCallback((index: number) => {
+    if (index === blList.length - 1) return; // Já está no final
+    
+    const newList = [...blList];
+    // Troca posições
+    [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
+    
+    setBlList(newList);
+    
+    // Ajusta o índice ativo se necessário
+    if (activeIndex === index) {
+      setActiveIndex(index + 1);
+    } else if (activeIndex === index + 1) {
+      setActiveIndex(index);
+    }
   }, [blList, activeIndex]);
 
   const handleUpdateBL = useCallback((data: BLData) => {
@@ -289,6 +323,37 @@ export const BLManager = () => {
                     >
                       {status === 'complete' ? '✓' : pendingCount}
                     </Badge>
+                    
+                    {/* Move buttons */}
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveBLUp(idx);
+                        }}
+                        disabled={idx === 0}
+                        title="Mover para cima"
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveBLDown(idx);
+                        }}
+                        disabled={idx === blList.length - 1}
+                        title="Mover para baixo"
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    
                     {blList.length > 1 && (
                       <Button
                         variant="ghost"
@@ -298,6 +363,7 @@ export const BLManager = () => {
                           e.stopPropagation();
                           handleRemoveBL(idx);
                         }}
+                        title="Remover BL"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>

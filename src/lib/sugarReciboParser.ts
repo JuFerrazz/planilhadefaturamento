@@ -14,9 +14,12 @@ export interface SugarReciboData {
 // Parse pasted text data (tab-separated or space-separated)
 export const parsePastedData = (text: string): SugarReciboData | null => {
   try {
+    console.log('Sugar Parser - Raw text received:', text.substring(0, 200));
+    
     const lines = text.trim().split('\n').filter(line => line.trim());
     
     if (lines.length < 2) {
+      console.log('Sugar Parser - Not enough lines:', lines.length);
       return null;
     }
     
@@ -24,7 +27,7 @@ export const parsePastedData = (text: string): SugarReciboData | null => {
     const headerLine = lines[0];
     const headers = headerLine.split(/\t/).map(h => h.toLowerCase().trim());
     
-    console.log('Pasted Headers:', headers);
+    console.log('Sugar Parser - Headers found:', headers);
     
     // Find column indices - look for exact or partial matches
     let blIndex = headers.findIndex(h => 
@@ -40,10 +43,12 @@ export const parsePastedData = (text: string): SugarReciboData | null => {
       h === 'customs broker' || h.includes('customs broker') || h.includes('customs') || h.includes('broker')
     );
     
-    console.log('Column indices:', { blIndex, shipperIndex, quantityIndex, brokerIndex });
+    console.log('Sugar Parser - Column indices:', { blIndex, shipperIndex, quantityIndex, brokerIndex });
     
     if (blIndex === -1 || shipperIndex === -1 || quantityIndex === -1 || brokerIndex === -1) {
-      console.error('Missing columns in pasted data');
+      console.error('Sugar Parser - Missing required columns');
+      console.error('Required: BL nbr, Name of shipper, Qtd per BL, Customs broker');
+      console.error('Found headers:', headers);
       return null;
     }
     
@@ -59,7 +64,12 @@ export const parsePastedData = (text: string): SugarReciboData | null => {
       const quantityRaw = row[quantityIndex];
       const customsBroker = String(row[brokerIndex] || '').trim();
       
-      if (!blNumber || !shipper || !customsBroker) continue;
+      console.log(`Sugar Parser - Row ${i}:`, { blNumber, shipper, quantityRaw, customsBroker });
+      
+      if (!blNumber || !shipper || !customsBroker) {
+        console.log(`Sugar Parser - Skipping row ${i} - missing required data`);
+        continue;
+      }
       
       // Parse quantity
       let quantity = parseQuantity(quantityRaw);
@@ -72,7 +82,7 @@ export const parsePastedData = (text: string): SugarReciboData | null => {
       });
     }
     
-    console.log('Parsed Sugar Entries from paste:', entries);
+    console.log('Sugar Parser - Final parsed entries:', entries);
     
     return { entries };
   } catch (error) {

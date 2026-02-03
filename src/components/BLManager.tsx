@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, MoveLeft, MoveRight } from 'lucide-react';
+import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, GripVertical } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -18,6 +18,8 @@ export const BLManager = () => {
   const [blList, setBlList] = useState<BLData[]>([createEmptyBL('1', '1')]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const activeBL = blList[activeIndex];
   const activeAtracacao = atracaoList.find(a => a.id === activeBL.atracaoId);
@@ -145,34 +147,52 @@ export const BLManager = () => {
     });
   }, [blList, activeIndex]);
 
-  const handleMoveBLLeft = useCallback((index: number) => {
-    if (index === 0) return; // Já está no início
+  // Drag and Drop handlers
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', ''); // Para compatibilidade
     
-    const newList = [...blList];
-    // Troca posições (move para esquerda = posição anterior)
-    [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
-    
-    // Renumera todos os BLs para refletir a nova ordem
-    newList.forEach((bl, idx) => {
-      bl.blNumber = String(idx + 1);
-    });
-    
-    setBlList(newList);
-    
-    // Ajusta o índice ativo se necessário
-    if (activeIndex === index) {
-      setActiveIndex(index - 1);
-    } else if (activeIndex === index - 1) {
-      setActiveIndex(index);
-    }
-  }, [blList, activeIndex]);
+    // Adiciona uma classe visual ao elemento sendo arrastado
+    const target = e.target as HTMLElement;
+    target.style.opacity = '0.5';
+  }, []);
 
-  const handleMoveBLRight = useCallback((index: number) => {
-    if (index === blList.length - 1) return; // Já está no final
+  const handleDragEnd = useCallback((e: React.DragEvent) => {
+    const target = e.target as HTMLElement;
+    target.style.opacity = '1';
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
     
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  }, [draggedIndex]);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverIndex(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      return;
+    }
+
     const newList = [...blList];
-    // Troca posições (move para direita = próxima posição)
-    [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
+    const draggedItem = newList[draggedIndex];
+    
+    // Remove o item da posição original
+    newList.splice(draggedIndex, 1);
+    
+    // Insere na nova posição
+    newList.splice(dropIndex, 0, draggedItem);
     
     // Renumera todos os BLs para refletir a nova ordem
     newList.forEach((bl, idx) => {
@@ -181,13 +201,18 @@ export const BLManager = () => {
     
     setBlList(newList);
     
-    // Ajusta o índice ativo se necessário
-    if (activeIndex === index) {
-      setActiveIndex(index + 1);
-    } else if (activeIndex === index + 1) {
-      setActiveIndex(index);
+    // Ajusta o índice ativo para seguir o BL movido
+    if (activeIndex === draggedIndex) {
+      setActiveIndex(dropIndex);
+    } else if (activeIndex > draggedIndex && activeIndex <= dropIndex) {
+      setActiveIndex(activeIndex - 1);
+    } else if (activeIndex < draggedIndex && activeIndex >= dropIndex) {
+      setActiveIndex(activeIndex + 1);
     }
-  }, [blList, activeIndex]);
+    
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, [draggedIndex, blList, activeIndex]);
 
   const handleUpdateBL = useCallback((data: BLData) => {
     const newList = [...blList];
@@ -303,7 +328,7 @@ export const BLManager = () => {
             </Button>
           </div>
 
-          {/* BL cards */}
+          {/* BL cards com drag and drop */}
           <ScrollArea className="w-full">
             <div className="flex gap-2 pb-2">
               {blList.map((bl, idx) => {
@@ -311,19 +336,38 @@ export const BLManager = () => {
                 const status = getBLStatus(bl, atr);
                 const pendingCount = getPendingFields(bl, atr).length;
                 const isActive = idx === activeIndex;
+                const isDragging = draggedIndex === idx;
+                const isDragOver = dragOverIndex === idx;
                 
                 return (
                   <div
                     key={bl.id}
+                    draggable={blList.length > 1}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, idx)}
                     className={`
                       flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
                       ${isActive 
                         ? 'bg-primary text-primary-foreground border-primary' 
                         : 'bg-card hover:bg-muted border-border'
                       }
+                      ${isDragging ? 'opacity-50 scale-95' : ''}
+                      ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}
+                      ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
                     `}
                     onClick={() => setActiveIndex(idx)}
+                    title={blList.length > 1 ? "Arraste para reordenar" : ""}
                   >
+                    {/* Drag handle - só aparece quando há mais de 1 BL */}
+                    {blList.length > 1 && (
+                      <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                        <GripVertical className="w-3 h-3" />
+                      </div>
+                    )}
+                    
                     <span className="font-medium whitespace-nowrap">
                       BL #{bl.blNumber || idx + 1}
                     </span>
@@ -333,39 +377,6 @@ export const BLManager = () => {
                     >
                       {status === 'complete' ? '✓' : pendingCount}
                     </Badge>
-                    
-                    {/* Move buttons - horizontais e mais intuitivos */}
-                    {blList.length > 1 && (
-                      <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-background/50">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMoveBLLeft(idx);
-                          }}
-                          disabled={idx === 0}
-                          title={`Mover BL #${bl.blNumber || idx + 1} para esquerda`}
-                        >
-                          <MoveLeft className="w-3 h-3" />
-                        </Button>
-                        <div className="w-px h-3 bg-border" />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-5 w-5 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMoveBLRight(idx);
-                          }}
-                          disabled={idx === blList.length - 1}
-                          title={`Mover BL #${bl.blNumber || idx + 1} para direita`}
-                        >
-                          <MoveRight className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    )}
                     
                     {blList.length > 1 && (
                       <Button

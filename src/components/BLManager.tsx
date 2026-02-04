@@ -100,27 +100,7 @@ export const BLManager = () => {
     });
   }, [atracaoList, blList]);
 
-  const handleAddBL = useCallback(() => {
-    const newId = String(blList.length + 1);
-    const newBL = createEmptyBL(newId, activeBL.atracaoId);
-    newBL.blNumber = newId;
-    
-    // Copia informações globais do primeiro BL
-    if (blList.length > 0) {
-      const firstBL = blList[0];
-      newBL.vessel = firstBL.vessel;
-      newBL.portOfLoading = firstBL.portOfLoading;
-      newBL.portOfDischarge = firstBL.portOfDischarge;
-      newBL.cargoType = firstBL.cargoType;
-    }
-    
-    setBlList([...blList, newBL]);
-    setActiveIndex(blList.length);
-    toast({
-      title: "Nova ficha criada",
-      description: `Ficha BL #${newId} adicionada na ${activeAtracacao?.name || 'atracação atual'}.`,
-    });
-  }, [blList, activeBL.atracaoId, activeAtracacao]);
+  // Removido handleAddBL - agora cada atracação tem seu próprio botão inline
 
   const handleRemoveBL = useCallback((index: number) => {
     if (blList.length === 1) {
@@ -178,36 +158,39 @@ export const BLManager = () => {
     setDragOverIndex(null);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number, targetAtracaoId: string) => {
     e.preventDefault();
     
     if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const draggedItem = blList[draggedIndex];
+    
+    // Só permite drop dentro da mesma atracação
+    if (draggedItem.atracaoId !== targetAtracaoId) {
+      toast({
+        title: "Movimento não permitido",
+        description: "BLs só podem ser reordenados dentro da mesma atracação.",
+        variant: "destructive",
+      });
+      setDraggedIndex(null);
+      setDragOverIndex(null);
       return;
     }
 
     const newList = [...blList];
-    const draggedItem = newList[draggedIndex];
     
     // Remove o item da posição original
     newList.splice(draggedIndex, 1);
     
+    // Ajusta o índice de drop se necessário
+    const adjustedDropIndex = dropIndex > draggedIndex ? dropIndex - 1 : dropIndex;
+    
     // Insere na nova posição
-    newList.splice(dropIndex, 0, draggedItem);
-    
-    // Determina a atracação da nova posição baseada nos BLs vizinhos
-    let newAtracaoId = draggedItem.atracaoId; // Mantém a original por padrão
-    
-    // Verifica o BL anterior na nova posição
-    if (dropIndex > 0) {
-      newAtracaoId = newList[dropIndex - 1].atracaoId;
-    }
-    // Se não há BL anterior, verifica o próximo
-    else if (dropIndex < newList.length - 1) {
-      newAtracaoId = newList[dropIndex + 1].atracaoId;
-    }
-    
-    // Atualiza a atracação do BL movido
-    draggedItem.atracaoId = newAtracaoId;
+    newList.splice(adjustedDropIndex, 0, draggedItem);
     
     // Renumera todos os BLs para refletir a nova ordem
     newList.forEach((bl, idx) => {
@@ -218,10 +201,10 @@ export const BLManager = () => {
     
     // Ajusta o índice ativo para seguir o BL movido
     if (activeIndex === draggedIndex) {
-      setActiveIndex(dropIndex);
-    } else if (activeIndex > draggedIndex && activeIndex <= dropIndex) {
+      setActiveIndex(adjustedDropIndex);
+    } else if (activeIndex > draggedIndex && activeIndex <= adjustedDropIndex) {
       setActiveIndex(activeIndex - 1);
-    } else if (activeIndex < draggedIndex && activeIndex >= dropIndex) {
+    } else if (activeIndex < draggedIndex && activeIndex >= adjustedDropIndex) {
       setActiveIndex(activeIndex + 1);
     }
     
@@ -283,16 +266,10 @@ export const BLManager = () => {
               <FileText className="w-5 h-5" />
               Fichas BL ({blList.length})
             </CardTitle>
-            <div className="flex gap-2">
-              <Button onClick={handlePrint} variant="outline" size="sm">
-                <Printer className="w-4 h-4 mr-2" />
-                Imprimir
-              </Button>
-              <Button onClick={handleAddBL} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Ficha
-              </Button>
-            </div>
+            <Button onClick={handlePrint} variant="outline" size="sm">
+              <Printer className="w-4 h-4 mr-2" />
+              Imprimir
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -343,84 +320,137 @@ export const BLManager = () => {
             </Button>
           </div>
 
-          {/* BL cards com drag and drop e separadores de atracação */}
+          {/* BL cards agrupados por atracação */}
           <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2">
-              {blList.map((bl, idx) => {
-                const atr = atracaoList.find(a => a.id === bl.atracaoId);
-                const status = getBLStatus(bl, atr);
-                const pendingCount = getPendingFields(bl, atr).length;
-                const isActive = idx === activeIndex;
-                const isDragging = draggedIndex === idx;
-                const isDragOver = dragOverIndex === idx;
-                
-                // Verifica se precisa de separador antes deste BL
-                const needsSeparator = idx > 0 && blList[idx - 1].atracaoId !== bl.atracaoId;
-                
-                return (
-                  <div key={bl.id} className="flex items-center">
-                    {/* Separador entre atracações */}
-                    {needsSeparator && (
-                      <div className="flex items-center mx-3">
-                        <div className="w-px h-12 bg-border/50" />
-                      </div>
-                    )}
-                    
-                    <div
-                      draggable={blList.length > 1}
-                      onDragStart={(e) => handleDragStart(e, idx)}
-                      onDragEnd={handleDragEnd}
-                      onDragOver={(e) => handleDragOver(e, idx)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, idx)}
-                      className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
-                        ${isActive 
-                          ? 'bg-primary text-primary-foreground border-primary' 
-                          : 'bg-card hover:bg-muted border-border'
-                        }
-                        ${isDragging ? 'opacity-50 scale-95' : ''}
-                        ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}
-                        ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
-                      `}
-                      onClick={() => setActiveIndex(idx)}
-                      title={blList.length > 1 ? "Arraste para reordenar" : ""}
-                    >
-                      {/* Drag handle - só aparece quando há mais de 1 BL */}
-                      {blList.length > 1 && (
-                        <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                          <GripVertical className="w-3 h-3" />
-                        </div>
-                      )}
-                      
-                      <span className="font-medium whitespace-nowrap">
-                        BL #{bl.blNumber || idx + 1}
+            <div className="flex gap-4 pb-2">
+              {blsByAtracacao.map((group, groupIdx) => (
+                <div key={group.atracacao.id} className="flex flex-col gap-2">
+                  {/* Header da atracação */}
+                  <div className="flex items-center gap-2 px-2 py-1 bg-muted/50 rounded-t-md border-b">
+                    <Anchor className="w-3 h-3 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {group.atracacao.name}
+                    </span>
+                    {group.atracacao.issueDate && (
+                      <span className="text-xs text-muted-foreground/70">
+                        ({format(group.atracacao.issueDate, "dd/MM")})
                       </span>
-                      <Badge 
-                        variant={status === 'complete' ? 'default' : 'secondary'}
-                        className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
-                      >
-                        {status === 'complete' ? '✓' : pendingCount}
-                      </Badge>
-                      
-                      {blList.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveBL(idx);
-                          }}
-                          title="Remover BL"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </div>
+                    )}
                   </div>
-                );
-              })}
+                  
+                  {/* BLs desta atracação */}
+                  <div className="flex gap-2 px-1">
+                    {group.bls.map(({ bl, idx }) => {
+                      const status = getBLStatus(bl, group.atracacao);
+                      const pendingCount = getPendingFields(bl, group.atracacao).length;
+                      const isActive = idx === activeIndex;
+                      const isDragging = draggedIndex === idx;
+                      const isDragOver = dragOverIndex === idx;
+                      
+                      return (
+                        <div
+                          key={bl.id}
+                          draggable={blList.length > 1}
+                          onDragStart={(e) => handleDragStart(e, idx)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(e) => handleDragOver(e, idx)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, idx, group.atracacao.id)}
+                          className={`
+                            flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
+                            ${isActive 
+                              ? 'bg-primary text-primary-foreground border-primary' 
+                              : 'bg-card hover:bg-muted border-border'
+                            }
+                            ${isDragging ? 'opacity-50 scale-95' : ''}
+                            ${isDragOver ? 'ring-2 ring-primary ring-offset-2' : ''}
+                            ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
+                          `}
+                          onClick={() => setActiveIndex(idx)}
+                          title={blList.length > 1 ? "Arraste para reordenar dentro da atracação" : ""}
+                        >
+                          {/* Drag handle */}
+                          {blList.length > 1 && (
+                            <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                              <GripVertical className="w-3 h-3" />
+                            </div>
+                          )}
+                          
+                          <span className="font-medium whitespace-nowrap">
+                            BL #{bl.blNumber || idx + 1}
+                          </span>
+                          <Badge 
+                            variant={status === 'complete' ? 'default' : 'secondary'}
+                            className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
+                          >
+                            {status === 'complete' ? '✓' : pendingCount}
+                          </Badge>
+                          
+                          {group.bls.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveBL(idx);
+                              }}
+                              title="Remover BL"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Botão para adicionar BL nesta atracação */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto py-2 px-2 border border-dashed"
+                      onClick={() => {
+                        const newId = String(blList.length + 1);
+                        const newBL = createEmptyBL(newId, group.atracacao.id);
+                        newBL.blNumber = newId;
+                        
+                        if (blList.length > 0) {
+                          const firstBL = blList[0];
+                          newBL.vessel = firstBL.vessel;
+                          newBL.portOfLoading = firstBL.portOfLoading;
+                          newBL.portOfDischarge = firstBL.portOfDischarge;
+                          newBL.cargoType = firstBL.cargoType;
+                        }
+                        
+                        // Insere o BL no final do grupo da atracação
+                        const lastIdxOfGroup = group.bls.length > 0 
+                          ? group.bls[group.bls.length - 1].idx + 1 
+                          : blList.findIndex(bl => bl.atracaoId > group.atracacao.id);
+                        
+                        const insertIdx = lastIdxOfGroup >= 0 ? lastIdxOfGroup : blList.length;
+                        const newList = [...blList];
+                        newList.splice(insertIdx, 0, newBL);
+                        
+                        // Renumera
+                        newList.forEach((bl, i) => {
+                          bl.blNumber = String(i + 1);
+                        });
+                        
+                        setBlList(newList);
+                        setActiveIndex(insertIdx);
+                        
+                        toast({
+                          title: "Nova ficha criada",
+                          description: `BL #${newBL.blNumber} adicionado na ${group.atracacao.name}.`,
+                        });
+                      }}
+                      title={`Adicionar BL na ${group.atracacao.name}`}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </ScrollArea>
           

@@ -161,30 +161,52 @@ export const BLManager = () => {
   const handleDrop = useCallback((e: React.DragEvent, dropIndex: number, targetAtracaoId: string) => {
     e.preventDefault();
     
-    if (draggedIndex === null) {
+    if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null);
       setDragOverIndex(null);
       return;
     }
 
     const draggedItem = { ...blList[draggedIndex] };
+    const isSameAtracacao = draggedItem.atracaoId === targetAtracaoId;
     
     // Atualiza a atracação do BL para a do grupo onde foi solto
     draggedItem.atracaoId = targetAtracaoId;
     
-    // Remove o item da lista original
-    const newList = blList.filter((_, i) => i !== draggedIndex);
+    let newList = [...blList];
     
-    // Adiciona o item com a nova atracação
-    newList.push(draggedItem);
+    // Remove o item da posição original
+    newList.splice(draggedIndex, 1);
     
-    // Reordena a lista para manter BLs agrupados por atracação
-    // Atracações ficam na ordem em que foram criadas
-    newList.sort((a, b) => {
-      const atraIdxA = atracaoList.findIndex(atr => atr.id === a.atracaoId);
-      const atraIdxB = atracaoList.findIndex(atr => atr.id === b.atracaoId);
-      return atraIdxA - atraIdxB;
-    });
+    if (isSameAtracacao) {
+      // Reordenando dentro da mesma atracação - insere na posição exata
+      const adjustedDropIndex = dropIndex > draggedIndex ? dropIndex - 1 : dropIndex;
+      newList.splice(adjustedDropIndex, 0, draggedItem);
+    } else {
+      // Movendo para outra atracação - insere no final do grupo de destino
+      // Encontra a posição após o último BL da atracação de destino
+      let insertIndex = newList.length;
+      for (let i = newList.length - 1; i >= 0; i--) {
+        if (newList[i].atracaoId === targetAtracaoId) {
+          insertIndex = i + 1;
+          break;
+        }
+      }
+      // Se não encontrou nenhum BL na atracação de destino, encontra a posição correta
+      if (insertIndex === newList.length && !newList.some(bl => bl.atracaoId === targetAtracaoId)) {
+        const targetAtraIdx = atracaoList.findIndex(a => a.id === targetAtracaoId);
+        insertIndex = 0;
+        for (let i = 0; i < newList.length; i++) {
+          const blAtraIdx = atracaoList.findIndex(a => a.id === newList[i].atracaoId);
+          if (blAtraIdx > targetAtraIdx) {
+            insertIndex = i;
+            break;
+          }
+          insertIndex = i + 1;
+        }
+      }
+      newList.splice(insertIndex, 0, draggedItem);
+    }
     
     // Renumera todos os BLs para refletir a nova ordem
     newList.forEach((bl, idx) => {
@@ -199,13 +221,7 @@ export const BLManager = () => {
     
     setDraggedIndex(null);
     setDragOverIndex(null);
-    
-    const targetAtracacao = atracaoList.find(a => a.id === targetAtracaoId);
-    toast({
-      title: "BL movido",
-      description: `BL movido para ${targetAtracacao?.name || 'atracação'}.`,
-    });
-  }, [draggedIndex, blList, activeIndex, atracaoList]);
+  }, [draggedIndex, blList, atracaoList]);
 
   const handleUpdateBL = useCallback((data: BLData) => {
     const newList = [...blList];

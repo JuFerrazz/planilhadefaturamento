@@ -176,40 +176,44 @@ export const BLManager = () => {
       return;
     }
 
-    // Cria nova lista sem o item arrastado
-    const newList = blList.filter((_, i) => i !== draggedIndex);
+    // Cria nova lista
+    const newList = [...blList];
     
-    // Cria cópia do item com nova atracação
-    const movedItem = { ...draggedItem, atracaoId: targetAtracaoId };
+    // Remove o item da posição original
+    const [movedItem] = newList.splice(draggedIndex, 1);
     
-    // Calcula onde inserir
-    // Se o target estava depois do dragged, o índice já foi ajustado pela remoção
-    const adjustedTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex;
+    // Calcula a posição de inserção correta
+    let insertIndex = targetIndex;
+    if (draggedIndex < targetIndex) {
+      // Se estamos movendo para a direita, ajusta o índice porque removemos um item antes
+      insertIndex = targetIndex - 1;
+    }
     
-    // Insere na posição do target
-    newList.splice(adjustedTargetIndex, 0, movedItem);
+    // Atualiza a atracação do item movido para a atracação do target
+    movedItem.atracaoId = targetAtracaoId;
     
-    // Reordena para garantir que cada atracação fique agrupada
-    const sortedList: typeof newList = [];
-    atracaoList.forEach(atr => {
-      const blsOfAtr = newList.filter(bl => bl.atracaoId === atr.id);
-      sortedList.push(...blsOfAtr);
-    });
+    // Insere na nova posição
+    newList.splice(insertIndex, 0, movedItem);
     
     // Renumera todos os BLs
-    sortedList.forEach((bl, idx) => {
+    newList.forEach((bl, idx) => {
       bl.blNumber = String(idx + 1);
     });
     
-    setBlList(sortedList);
+    setBlList(newList);
     
-    // Encontra o novo índice do BL movido
-    const newIndex = sortedList.findIndex(bl => bl.id === movedItem.id);
-    setActiveIndex(newIndex);
+    // Ajusta o índice ativo
+    if (activeIndex === draggedIndex) {
+      setActiveIndex(insertIndex);
+    } else if (activeIndex > draggedIndex && activeIndex <= targetIndex) {
+      setActiveIndex(activeIndex - 1);
+    } else if (activeIndex < draggedIndex && activeIndex >= insertIndex) {
+      setActiveIndex(activeIndex + 1);
+    }
     
     setDraggedIndex(null);
     setDragOverIndex(null);
-  }, [draggedIndex, blList, atracaoList]);
+  }, [draggedIndex, blList, activeIndex]);
 
   const handleUpdateBL = useCallback((data: BLData) => {
     const newList = [...blList];

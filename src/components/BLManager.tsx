@@ -100,7 +100,23 @@ export const BLManager = () => {
     });
   }, [atracaoList, blList]);
 
-  // Removido handleAddBL - agora cada atracação tem seu próprio botão inline
+  const handleAddBL = useCallback(() => {
+    const newId = String(blList.length + 1);
+    const newBL = createEmptyBL(newId, activeBL.atracaoId);
+    newBL.blNumber = newId;
+    
+    // Copia informações globais do primeiro BL
+    if (blList.length > 0) {
+      const firstBL = blList[0];
+      newBL.vessel = firstBL.vessel;
+      newBL.portOfLoading = firstBL.portOfLoading;
+      newBL.portOfDischarge = firstBL.portOfDischarge;
+      newBL.cargoType = firstBL.cargoType;
+    }
+    
+    setBlList([...blList, newBL]);
+    setActiveIndex(blList.length);
+  }, [blList, activeBL.atracaoId]);
 
   const handleRemoveBL = useCallback((index: number) => {
     if (blList.length === 1) {

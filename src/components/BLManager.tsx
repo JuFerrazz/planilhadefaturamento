@@ -287,10 +287,16 @@ export const BLManager = () => {
               <FileText className="w-5 h-5" />
               Fichas BL ({blList.length})
             </CardTitle>
-            <Button onClick={handlePrint} variant="outline" size="sm">
-              <Printer className="w-4 h-4 mr-2" />
-              Imprimir
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handlePrint} variant="outline" size="sm">
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimir
+              </Button>
+              <Button onClick={handleAddBL} size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Ficha
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

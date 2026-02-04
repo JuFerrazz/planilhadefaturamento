@@ -161,36 +161,30 @@ export const BLManager = () => {
   const handleDrop = useCallback((e: React.DragEvent, dropIndex: number, targetAtracaoId: string) => {
     e.preventDefault();
     
-    if (draggedIndex === null || draggedIndex === dropIndex) {
+    if (draggedIndex === null) {
       setDraggedIndex(null);
       setDragOverIndex(null);
       return;
     }
 
-    const draggedItem = blList[draggedIndex];
+    const draggedItem = { ...blList[draggedIndex] };
     
-    // Só permite drop dentro da mesma atracação
-    if (draggedItem.atracaoId !== targetAtracaoId) {
-      toast({
-        title: "Movimento não permitido",
-        description: "BLs só podem ser reordenados dentro da mesma atracação.",
-        variant: "destructive",
-      });
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
-    const newList = [...blList];
+    // Atualiza a atracação do BL para a do grupo onde foi solto
+    draggedItem.atracaoId = targetAtracaoId;
     
-    // Remove o item da posição original
-    newList.splice(draggedIndex, 1);
+    // Remove o item da lista original
+    const newList = blList.filter((_, i) => i !== draggedIndex);
     
-    // Ajusta o índice de drop se necessário
-    const adjustedDropIndex = dropIndex > draggedIndex ? dropIndex - 1 : dropIndex;
+    // Adiciona o item com a nova atracação
+    newList.push(draggedItem);
     
-    // Insere na nova posição
-    newList.splice(adjustedDropIndex, 0, draggedItem);
+    // Reordena a lista para manter BLs agrupados por atracação
+    // Atracações ficam na ordem em que foram criadas
+    newList.sort((a, b) => {
+      const atraIdxA = atracaoList.findIndex(atr => atr.id === a.atracaoId);
+      const atraIdxB = atracaoList.findIndex(atr => atr.id === b.atracaoId);
+      return atraIdxA - atraIdxB;
+    });
     
     // Renumera todos os BLs para refletir a nova ordem
     newList.forEach((bl, idx) => {
@@ -199,18 +193,19 @@ export const BLManager = () => {
     
     setBlList(newList);
     
-    // Ajusta o índice ativo para seguir o BL movido
-    if (activeIndex === draggedIndex) {
-      setActiveIndex(adjustedDropIndex);
-    } else if (activeIndex > draggedIndex && activeIndex <= adjustedDropIndex) {
-      setActiveIndex(activeIndex - 1);
-    } else if (activeIndex < draggedIndex && activeIndex >= adjustedDropIndex) {
-      setActiveIndex(activeIndex + 1);
-    }
+    // Encontra o novo índice do BL movido
+    const newIndex = newList.findIndex(bl => bl.id === draggedItem.id);
+    setActiveIndex(newIndex);
     
     setDraggedIndex(null);
     setDragOverIndex(null);
-  }, [draggedIndex, blList, activeIndex]);
+    
+    const targetAtracacao = atracaoList.find(a => a.id === targetAtracaoId);
+    toast({
+      title: "BL movido",
+      description: `BL movido para ${targetAtracacao?.name || 'atracação'}.`,
+    });
+  }, [draggedIndex, blList, activeIndex, atracaoList]);
 
   const handleUpdateBL = useCallback((data: BLData) => {
     const newList = [...blList];

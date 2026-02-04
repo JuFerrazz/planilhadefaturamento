@@ -158,65 +158,53 @@ export const BLManager = () => {
     setDragOverIndex(null);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number, targetAtracaoId: string) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetBlId: string, targetAtracaoId: string) => {
     e.preventDefault();
     
-    if (draggedIndex === null || draggedIndex === dropIndex) {
+    if (draggedIndex === null) {
       setDraggedIndex(null);
       setDragOverIndex(null);
       return;
     }
 
-    const draggedItem = { ...blList[draggedIndex] };
-    const isSameAtracacao = draggedItem.atracaoId === targetAtracaoId;
+    const draggedItem = blList[draggedIndex];
+    const targetIndex = blList.findIndex(bl => bl.id === targetBlId);
     
-    // Atualiza a atracação do BL para a do grupo onde foi solto
-    draggedItem.atracaoId = targetAtracaoId;
-    
-    let newList = [...blList];
-    
-    // Remove o item da posição original
-    newList.splice(draggedIndex, 1);
-    
-    if (isSameAtracacao) {
-      // Reordenando dentro da mesma atracação - insere na posição exata
-      const adjustedDropIndex = dropIndex > draggedIndex ? dropIndex - 1 : dropIndex;
-      newList.splice(adjustedDropIndex, 0, draggedItem);
-    } else {
-      // Movendo para outra atracação - insere no final do grupo de destino
-      // Encontra a posição após o último BL da atracação de destino
-      let insertIndex = newList.length;
-      for (let i = newList.length - 1; i >= 0; i--) {
-        if (newList[i].atracaoId === targetAtracaoId) {
-          insertIndex = i + 1;
-          break;
-        }
-      }
-      // Se não encontrou nenhum BL na atracação de destino, encontra a posição correta
-      if (insertIndex === newList.length && !newList.some(bl => bl.atracaoId === targetAtracaoId)) {
-        const targetAtraIdx = atracaoList.findIndex(a => a.id === targetAtracaoId);
-        insertIndex = 0;
-        for (let i = 0; i < newList.length; i++) {
-          const blAtraIdx = atracaoList.findIndex(a => a.id === newList[i].atracaoId);
-          if (blAtraIdx > targetAtraIdx) {
-            insertIndex = i;
-            break;
-          }
-          insertIndex = i + 1;
-        }
-      }
-      newList.splice(insertIndex, 0, draggedItem);
+    if (targetIndex === draggedIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
     }
+
+    // Cria nova lista sem o item arrastado
+    const newList = blList.filter((_, i) => i !== draggedIndex);
     
-    // Renumera todos os BLs para refletir a nova ordem
-    newList.forEach((bl, idx) => {
+    // Cria cópia do item com nova atracação
+    const movedItem = { ...draggedItem, atracaoId: targetAtracaoId };
+    
+    // Calcula onde inserir
+    // Se o target estava depois do dragged, o índice já foi ajustado pela remoção
+    const adjustedTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex;
+    
+    // Insere na posição do target
+    newList.splice(adjustedTargetIndex, 0, movedItem);
+    
+    // Reordena para garantir que cada atracação fique agrupada
+    const sortedList: typeof newList = [];
+    atracaoList.forEach(atr => {
+      const blsOfAtr = newList.filter(bl => bl.atracaoId === atr.id);
+      sortedList.push(...blsOfAtr);
+    });
+    
+    // Renumera todos os BLs
+    sortedList.forEach((bl, idx) => {
       bl.blNumber = String(idx + 1);
     });
     
-    setBlList(newList);
+    setBlList(sortedList);
     
     // Encontra o novo índice do BL movido
-    const newIndex = newList.findIndex(bl => bl.id === draggedItem.id);
+    const newIndex = sortedList.findIndex(bl => bl.id === movedItem.id);
     setActiveIndex(newIndex);
     
     setDraggedIndex(null);
@@ -366,7 +354,7 @@ export const BLManager = () => {
                           onDragEnd={handleDragEnd}
                           onDragOver={(e) => handleDragOver(e, idx)}
                           onDragLeave={handleDragLeave}
-                          onDrop={(e) => handleDrop(e, idx, group.atracacao.id)}
+                          onDrop={(e) => handleDrop(e, bl.id, group.atracacao.id)}
                           className={`
                             flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
                             ${isActive 

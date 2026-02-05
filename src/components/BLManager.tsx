@@ -21,11 +21,11 @@ export const BLManager = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const activeBL = blList[activeIndex];
-  const activeAtracacao = atracaoList.find(a => a.id === activeBL.atracaoId);
+  const activeBL = blList[activeIndex] || blList[0];
+  const activeAtracacao = activeBL ? atracaoList.find(a => a.id === activeBL.atracaoId) : atracaoList[0];
   
   // Verifica se o BL atual é o primeiro da sua atracação
-  const isFirstOfAtracacao = blList.findIndex(bl => bl.atracaoId === activeBL.atracaoId) === activeIndex;
+  const isFirstOfAtracacao = activeBL ? blList.findIndex(bl => bl.atracaoId === activeBL.atracaoId) === activeIndex : true;
 
   // Keyboard shortcut for print
   useEffect(() => {
@@ -102,7 +102,8 @@ export const BLManager = () => {
 
   const handleAddBL = useCallback(() => {
     const newId = String(blList.length + 1);
-    const newBL = createEmptyBL(newId, activeBL.atracaoId);
+    const currentAtracaoId = activeBL?.atracaoId || atracaoList[0]?.id || '1';
+    const newBL = createEmptyBL(newId, currentAtracaoId);
     newBL.blNumber = newId;
     
     // Copia informações globais do primeiro BL
@@ -116,7 +117,7 @@ export const BLManager = () => {
     
     setBlList([...blList, newBL]);
     setActiveIndex(blList.length);
-  }, [blList, activeBL.atracaoId]);
+  }, [blList, activeBL, atracaoList]);
 
   const handleRemoveBL = useCallback((index: number) => {
     if (blList.length === 1) {

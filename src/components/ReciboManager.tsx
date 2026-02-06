@@ -111,13 +111,8 @@ export function ReciboManager() {
 
     const recibos: GrainReciboData[] = [];
     grouped.forEach((value, shipper) => {
-      // Usa toFixed com muitas casas decimais e depois remove zeros desnecessários
-      let quantityStr = value.totalQuantity.toFixed(10); // 10 casas decimais
-      // Remove zeros à direita, mas mantém pelo menos 1 casa decimal
-      quantityStr = quantityStr.replace(/\.?0+$/, '');
-      if (!quantityStr.includes('.')) {
-        quantityStr += '.0';
-      }
+      // Usa toFixed com muitas casas decimais - NÃO remove zeros
+      const quantityStr = value.totalQuantity.toFixed(10); // 10 casas decimais
       
       recibos.push({
         shipper,

@@ -36,17 +36,17 @@ export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({
     return `${rest.join(', ')} E ${last}`;
   };
 
-  // Format quantity without rounding - preserve all decimals
+  // Format quantity preserving ALL decimals including trailing zeros
   const formatQuantity = (qty: string | number) => {
     const qtyStr = typeof qty === 'number' ? qty.toString() : qty;
     
     // Separa parte inteira e decimal
     const parts = qtyStr.split('.');
     const intPart = parseInt(parts[0]).toLocaleString('en-US');
-    const decPart = parts[1] || '';
+    const decPart = parts[1] || '0';
     
-    // Retorna com todas as casas decimais preservadas
-    return decPart ? `${intPart}.${decPart} MT` : `${intPart} MT`;
+    // Retorna com TODAS as casas decimais preservadas (incluindo zeros)
+    return `${intPart}.${decPart} MT`;
   };
 
   return (

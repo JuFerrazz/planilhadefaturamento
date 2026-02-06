@@ -88,14 +88,21 @@ export function GrainReciboManager() {
 
     const recibos: GrainReciboData[] = [];
     grouped.forEach((value, shipper) => {
-      // Soma as quantidades preservando decimais
-      const totalQuantity = value.quantities.reduce((sum, qtyStr) => {
-        const qty = parseFloat(qtyStr.replace(',', '.')) || 0;
-        return sum + qty;
-      }, 0);
+      // Soma as quantidades como strings para preservar TODOS os decimais
+      let totalQuantity = 0;
+      let maxDecimals = 0;
       
-      // Usa toFixed com muitas casas decimais - NÃO remove zeros
-      const quantityStr = totalQuantity.toFixed(10); // 10 casas decimais
+      // Primeiro, soma e descobre quantas casas decimais tem
+      value.quantities.forEach(qtyStr => {
+        const cleanStr = qtyStr.replace(',', '.');
+        const decimals = cleanStr.includes('.') ? cleanStr.split('.')[1].length : 0;
+        maxDecimals = Math.max(maxDecimals, decimals);
+        totalQuantity += parseFloat(cleanStr) || 0;
+      });
+      
+      // Usa toFixed com o número exato de casas decimais necessárias (mínimo 3)
+      const decimalPlaces = Math.max(maxDecimals, 3);
+      const quantityStr = totalQuantity.toFixed(decimalPlaces);
       
       recibos.push({
         shipper,

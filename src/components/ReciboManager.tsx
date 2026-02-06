@@ -27,7 +27,7 @@ interface GrainEntry {
 interface GrainReciboData {
   shipper: string;
   blNumbers: string[];
-  quantity: number;
+  quantity: string; // Mudado para string para preservar todas as casas decimais
 }
 
 interface SugarReciboGroupData {
@@ -114,7 +114,7 @@ export function ReciboManager() {
       recibos.push({
         shipper,
         blNumbers: value.blNumbers,
-        quantity: value.totalQuantity
+        quantity: value.totalQuantity.toString() // Converte para string preservando decimais
       });
     });
 

@@ -9,7 +9,7 @@ interface GrainReciboProps {
   port: string;
   shipper: string;
   blNumbers: string[];
-  quantity: number;
+  quantity: string; // Mudado para string
 }
 
 const cargoNames: Record<string, string> = {
@@ -36,13 +36,18 @@ export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({
     return `${rest.join(', ')} E ${last}`;
   };
 
-  // Format quantity without rounding - preserve original decimals
-  const formatQuantity = (qty: number) => {
-    const str = qty.toString();
-    const parts = str.split('.');
-    const intPart = parseInt(parts[0]).toLocaleString('en-US');
-    const decPart = parts[1] || '';
-    return decPart ? `${intPart}.${decPart} MT` : `${intPart} MT`;
+  // Format quantity without rounding - preserve all decimals
+  const formatQuantity = (qty: string | number) => {
+    const qtyStr = typeof qty === 'number' ? qty.toString() : qty;
+    const qtyNum = parseFloat(qtyStr);
+    
+    // Format with all decimal places preserved
+    const formatted = qtyNum.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 20 // Permite até 20 casas decimais
+    });
+    
+    return `${formatted} MT`;
   };
 
   return (

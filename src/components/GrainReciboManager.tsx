@@ -94,7 +94,14 @@ export function GrainReciboManager() {
       
       // Primeiro, soma e descobre quantas casas decimais tem
       value.quantities.forEach(qtyStr => {
-        const cleanStr = qtyStr.replace(',', '.');
+        let cleanStr = qtyStr.trim();
+        // Se tem ponto E vírgula, vírgula é separador de milhar → remove
+        // Se tem só vírgula, trata como separador decimal → troca por ponto
+        if (cleanStr.includes('.') && cleanStr.includes(',')) {
+          cleanStr = cleanStr.replace(/,/g, '');
+        } else if (cleanStr.includes(',')) {
+          cleanStr = cleanStr.replace(',', '.');
+        }
         const decimals = cleanStr.includes('.') ? cleanStr.split('.')[1].length : 0;
         maxDecimals = Math.max(maxDecimals, decimals);
         totalQuantity += parseFloat(cleanStr) || 0;

@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Printer, FileText, ChevronLeft, ChevronRight, Anchor, GripVertical, Pencil } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
 
 export const BLManager = () => {
   const [atracaoList, setAtracaoList] = useState<Atracacao[]>([
@@ -20,6 +21,8 @@ export const BLManager = () => {
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editingNameValue, setEditingNameValue] = useState('');
 
   const activeBL = blList[activeIndex] || blList[0];
   const activeAtracacao = activeBL ? atracaoList.find(a => a.id === activeBL.atracaoId) : atracaoList[0];
@@ -41,13 +44,12 @@ export const BLManager = () => {
   }, [activeIndex]);
 
   const handleAddAtracacao = useCallback(() => {
-    const newAtracaoId = String(atracaoList.length + 1);
+    const newAtracaoId = String(Date.now());
     const newAtracacao = createEmptyAtracacao(newAtracaoId, `${atracaoList.length + 1}ª Atracação`);
     
     // Cria um novo BL para a nova atracação
-    const newBLId = String(blList.length + 1);
+    const newBLId = String(Date.now() + 1);
     const newBL = createEmptyBL(newBLId, newAtracaoId);
-    newBL.blNumber = newBLId; // Numeração sequencial independente da atracação
     
     // Copia informações globais do primeiro BL
     if (blList.length > 0) {
@@ -58,13 +60,19 @@ export const BLManager = () => {
       newBL.cargoType = firstBL.cargoType;
     }
     
+    const newList = [...blList, newBL];
+    // Renumera todos globalmente
+    newList.forEach((bl, idx) => {
+      bl.blNumber = String(idx + 1);
+    });
+    
     setAtracaoList([...atracaoList, newAtracacao]);
-    setBlList([...blList, newBL]);
-    setActiveIndex(blList.length); // Navega para o novo BL
+    setBlList(newList);
+    setActiveIndex(newList.length - 1);
     
     toast({
       title: "Nova atracação criada",
-      description: `${newAtracacao.name} adicionada com BL #1.`,
+      description: `${newAtracacao.name} adicionada com BL #${newList.length}.`,
     });
   }, [atracaoList, blList]);
 
@@ -101,10 +109,9 @@ export const BLManager = () => {
   }, [atracaoList, blList]);
 
   const handleAddBL = useCallback(() => {
-    const newId = String(blList.length + 1);
+    const newId = String(Date.now());
     const currentAtracaoId = activeBL?.atracaoId || atracaoList[0]?.id || '1';
     const newBL = createEmptyBL(newId, currentAtracaoId);
-    newBL.blNumber = newId;
     
     // Copia informações globais do primeiro BL
     if (blList.length > 0) {
@@ -115,8 +122,27 @@ export const BLManager = () => {
       newBL.cargoType = firstBL.cargoType;
     }
     
-    setBlList([...blList, newBL]);
-    setActiveIndex(blList.length);
+    // Insere no final do grupo da atracação selecionada
+    const newList = [...blList];
+    let insertIndex = newList.length;
+    
+    // Encontra o último BL da atracação atual
+    for (let i = newList.length - 1; i >= 0; i--) {
+      if (newList[i].atracaoId === currentAtracaoId) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+    
+    newList.splice(insertIndex, 0, newBL);
+    
+    // Renumera todos os BLs globalmente
+    newList.forEach((bl, idx) => {
+      bl.blNumber = String(idx + 1);
+    });
+    
+    setBlList(newList);
+    setActiveIndex(insertIndex);
   }, [blList, activeBL, atracaoList]);
 
   const handleRemoveBL = useCallback((index: number) => {
@@ -130,6 +156,12 @@ export const BLManager = () => {
     }
 
     const newList = blList.filter((_, i) => i !== index);
+    
+    // Renumera todos os BLs globalmente
+    newList.forEach((bl, idx) => {
+      bl.blNumber = String(idx + 1);
+    });
+    
     setBlList(newList);
     
     if (activeIndex >= newList.length) {
@@ -140,9 +172,36 @@ export const BLManager = () => {
 
     toast({
       title: "Ficha removida",
-      description: `Ficha #${index + 1} foi removida.`,
+      description: `Ficha removida com sucesso.`,
     });
   }, [blList, activeIndex]);
+
+  // Name editing handlers
+  const handleStartEditName = useCallback((bl: BLData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingNameId(bl.id);
+    setEditingNameValue(bl.name || '');
+  }, []);
+
+  const handleFinishEditName = useCallback(() => {
+    if (editingNameId) {
+      const newList = blList.map(bl => 
+        bl.id === editingNameId ? { ...bl, name: editingNameValue.toUpperCase() } : bl
+      );
+      setBlList(newList);
+    }
+    setEditingNameId(null);
+    setEditingNameValue('');
+  }, [editingNameId, editingNameValue, blList]);
+
+  const handleNameKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleFinishEditName();
+    } else if (e.key === 'Escape') {
+      setEditingNameId(null);
+      setEditingNameValue('');
+    }
+  }, [handleFinishEditName]);
 
   // Drag and Drop handlers
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
@@ -400,7 +459,7 @@ export const BLManager = () => {
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, bl.id, bl.atracaoId)}
                       className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
+                        group flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
                         ${isActive 
                           ? 'bg-primary text-primary-foreground border-primary' 
                           : 'bg-card hover:bg-muted border-border'
@@ -418,9 +477,30 @@ export const BLManager = () => {
                         </div>
                       )}
                       
-                      <span className="font-medium whitespace-nowrap">
-                        BL #{bl.blNumber || idx + 1}
-                      </span>
+                      {/* Nome editável + número sequencial */}
+                      {editingNameId === bl.id ? (
+                        <Input
+                          autoFocus
+                          value={editingNameValue}
+                          onChange={(e) => setEditingNameValue(e.target.value)}
+                          onBlur={handleFinishEditName}
+                          onKeyDown={handleNameKeyDown}
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-6 w-24 text-xs font-medium uppercase px-1 py-0"
+                          placeholder="Nome"
+                        />
+                      ) : (
+                        <span 
+                          className="font-medium whitespace-nowrap flex items-center gap-1"
+                          onDoubleClick={(e) => handleStartEditName(bl, e)}
+                        >
+                          {bl.name ? `${bl.name}#${bl.blNumber || idx + 1}` : `BL#${bl.blNumber || idx + 1}`}
+                          <Pencil 
+                            className={`w-2.5 h-2.5 opacity-0 group-hover:opacity-100 cursor-pointer ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
+                            onClick={(e) => handleStartEditName(bl, e)}
+                          />
+                        </span>
+                      )}
                       <Badge 
                         variant={status === 'complete' ? 'default' : 'secondary'}
                         className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
@@ -491,7 +571,7 @@ export const BLManager = () => {
         <TabsContent value="form" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Editar BL #{activeBL.blNumber || activeIndex + 1}</CardTitle>
+              <CardTitle>Editar {activeBL.name ? `${activeBL.name}#${activeBL.blNumber || activeIndex + 1}` : `BL#${activeBL.blNumber || activeIndex + 1}`}</CardTitle>
             </CardHeader>
             <CardContent>
               <BLForm 
@@ -509,7 +589,7 @@ export const BLManager = () => {
         <TabsContent value="preview" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pré-visualização - BL #{activeBL.blNumber || activeIndex + 1}</CardTitle>
+              <CardTitle>Pré-visualização - {activeBL.name ? `${activeBL.name}#${activeBL.blNumber || activeIndex + 1}` : `BL#${activeBL.blNumber || activeIndex + 1}`}</CardTitle>
             </CardHeader>
             <CardContent>
               <BLPreview data={activeBL} atracacao={activeAtracacao} />

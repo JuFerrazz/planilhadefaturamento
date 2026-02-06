@@ -446,9 +446,18 @@ export const BLManager = () => {
                       </div>
                     )}
                     
-                    {/* Indicador de inserção à esquerda */}
+                    {/* Indicador de inserção à esquerda - triângulo */}
                     {dragOverIndex === idx && draggedIndex !== null && draggedIndex !== idx && (
-                      <div className="w-1 h-12 bg-primary rounded-full mr-1 animate-pulse" />
+                      <div className="flex items-center mr-1">
+                        <div
+                          className="w-0 h-0 animate-pulse"
+                          style={{
+                            borderTop: '8px solid transparent',
+                            borderBottom: '8px solid transparent',
+                            borderLeft: '10px solid hsl(var(--primary))',
+                          }}
+                        />
+                      </div>
                     )}
                     
                     <div
@@ -524,9 +533,18 @@ export const BLManager = () => {
                       )}
                     </div>
                     
-                    {/* Indicador de inserção à direita (no final) */}
+                    {/* Indicador de inserção à direita - triângulo */}
                     {dragOverIndex === idx + 1 && draggedIndex !== null && draggedIndex !== idx + 1 && (
-                      <div className="w-1 h-12 bg-primary rounded-full ml-1 animate-pulse" />
+                      <div className="flex items-center ml-1">
+                        <div
+                          className="w-0 h-0 animate-pulse"
+                          style={{
+                            borderTop: '8px solid transparent',
+                            borderBottom: '8px solid transparent',
+                            borderRight: '10px solid hsl(var(--primary))',
+                          }}
+                        />
+                      </div>
                     )}
                   </div>
                 );

@@ -23,7 +23,7 @@ interface GrainEntry {
 interface GrainReciboData {
   shipper: string;
   blNumbers: string[];
-  quantity: number;
+  quantity: string; // Mudado para string para preservar decimais exatos
 }
 
 export function GrainReciboManager() {
@@ -68,30 +68,44 @@ export function GrainReciboManager() {
     }
 
     // Group by shipper
-    const grouped = new Map<string, { blNumbers: string[]; totalQuantity: number }>();
+    const grouped = new Map<string, { blNumbers: string[]; quantities: string[] }>();
     
     validEntries.forEach(entry => {
       const shipper = entry.shipper.trim().toUpperCase();
-      const qty = parseFloat(entry.quantity.replace(',', '.')) || 0;
+      const qty = entry.quantity.trim(); // Mantém como string
       
       if (grouped.has(shipper)) {
         const existing = grouped.get(shipper)!;
         existing.blNumbers.push(entry.blNumber.trim());
-        existing.totalQuantity += qty;
+        existing.quantities.push(qty);
       } else {
         grouped.set(shipper, {
           blNumbers: [entry.blNumber.trim()],
-          totalQuantity: qty
+          quantities: [qty]
         });
       }
     });
 
     const recibos: GrainReciboData[] = [];
     grouped.forEach((value, shipper) => {
+      // Soma as quantidades preservando decimais
+      const totalQuantity = value.quantities.reduce((sum, qtyStr) => {
+        const qty = parseFloat(qtyStr.replace(',', '.')) || 0;
+        return sum + qty;
+      }, 0);
+      
+      // Usa toFixed com muitas casas decimais e depois remove zeros desnecessários
+      let quantityStr = totalQuantity.toFixed(10); // 10 casas decimais
+      // Remove zeros à direita, mas mantém pelo menos 1 casa decimal
+      quantityStr = quantityStr.replace(/\.?0+$/, '');
+      if (!quantityStr.includes('.')) {
+        quantityStr += '.0';
+      }
+      
       recibos.push({
         shipper,
         blNumbers: value.blNumbers,
-        quantity: value.totalQuantity
+        quantity: quantityStr
       });
     });
 

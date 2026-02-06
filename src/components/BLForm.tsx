@@ -56,8 +56,18 @@ export const BLForm = ({ data, onChange, atracacao, onAtracaoChange, atracaoList
       {/* PDF Drop Zone */}
       <PdfDropZone onDataExtracted={handlePdfData} />
 
-      {/* BL Number */}
+      {/* BL Name & Number */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="blName">Nome do BL (ex: RAÍZEN, PETROBRAS)</Label>
+          <Input
+            id="blName"
+            value={data.name}
+            onChange={(e) => updateField('name', e.target.value.toUpperCase())}
+            placeholder="Nome personalizado"
+            className="uppercase"
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="blNumber">B/L No.</Label>
           <Input

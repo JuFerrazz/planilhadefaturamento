@@ -6,6 +6,8 @@ export interface Atracacao {
 
 export interface BLData {
   id: string;
+  // Custom name for the BL (e.g. RAÍZEN, PETROBRAS)
+  name: string;
   // Shipper info
   shipperName: string;
   shipperCnpj: string;
@@ -35,8 +37,9 @@ export interface BLFormProps {
   onChange: (data: BLData) => void;
 }
 
-export const createEmptyBL = (id: string, atracaoId: string = '1'): BLData => ({
+export const createEmptyBL = (id: string, atracaoId: string = '1', name: string = ''): BLData => ({
   id,
+  name,
   shipperName: '',
   shipperCnpj: '',
   vessel: '',

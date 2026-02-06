@@ -39,15 +39,14 @@ export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({
   // Format quantity without rounding - preserve all decimals
   const formatQuantity = (qty: string | number) => {
     const qtyStr = typeof qty === 'number' ? qty.toString() : qty;
-    const qtyNum = parseFloat(qtyStr);
     
-    // Format with all decimal places preserved
-    const formatted = qtyNum.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 20 // Permite até 20 casas decimais
-    });
+    // Separa parte inteira e decimal
+    const parts = qtyStr.split('.');
+    const intPart = parseInt(parts[0]).toLocaleString('en-US');
+    const decPart = parts[1] || '';
     
-    return `${formatted} MT`;
+    // Retorna com todas as casas decimais preservadas
+    return decPart ? `${intPart}.${decPart} MT` : `${intPart} MT`;
   };
 
   return (

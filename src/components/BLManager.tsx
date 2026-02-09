@@ -446,102 +446,111 @@ export const BLManager = () => {
                       </div>
                     )}
                     
-                    {/* Indicador de inserção à esquerda - triângulo */}
+                    {/* Indicador de inserção à esquerda - triângulo acima */}
                     {dragOverIndex === idx && draggedIndex !== null && draggedIndex !== idx && (
-                      <div className="flex items-center mr-1">
+                      <div className="flex flex-col items-center justify-end mr-[-6px] ml-[-6px] z-10 self-start mt-[-4px]">
                         <div
                           className="w-0 h-0 animate-pulse"
                           style={{
-                            borderTop: '8px solid transparent',
-                            borderBottom: '8px solid transparent',
-                            borderLeft: '10px solid hsl(var(--primary))',
+                            borderLeft: '8px solid transparent',
+                            borderRight: '8px solid transparent',
+                            borderTop: '10px solid hsl(var(--primary))',
                           }}
                         />
                       </div>
                     )}
                     
-                    <div
-                      draggable={blList.length > 1}
-                      onDragStart={(e) => handleDragStart(e, idx)}
-                      onDragEnd={handleDragEnd}
-                      onDragOver={(e) => handleDragOver(e, idx)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, bl.id, bl.atracaoId)}
-                      className={`
-                        group flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
-                        ${isActive 
-                          ? 'bg-primary text-primary-foreground border-primary' 
-                          : 'bg-card hover:bg-muted border-border'
-                        }
-                        ${isDragging ? 'opacity-50 scale-95' : ''}
-                        ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
-                      `}
-                      onClick={() => setActiveIndex(idx)}
-                      title={blList.length > 1 ? "Arraste para reordenar" : ""}
-                    >
-                      {/* Drag handle - só aparece quando há mais de 1 BL */}
-                      {blList.length > 1 && (
-                        <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                          <GripVertical className="w-3 h-3" />
-                        </div>
-                      )}
-                      
-                      {/* Nome editável + número sequencial */}
-                      {editingNameId === bl.id ? (
-                        <Input
-                          autoFocus
-                          value={editingNameValue}
-                          onChange={(e) => setEditingNameValue(e.target.value)}
-                          onBlur={handleFinishEditName}
-                          onKeyDown={handleNameKeyDown}
-                          onClick={(e) => e.stopPropagation()}
-                          className="h-6 w-24 text-xs font-medium uppercase px-1 py-0"
-                          placeholder="Nome"
-                        />
-                      ) : (
-                        <span 
-                          className="font-medium whitespace-nowrap flex items-center gap-1"
-                          onDoubleClick={(e) => handleStartEditName(bl, e)}
-                        >
-                          {bl.name ? `${bl.name}#${bl.blNumber || idx + 1}` : `BL#${bl.blNumber || idx + 1}`}
-                          <Pencil 
-                            className={`w-2.5 h-2.5 opacity-0 group-hover:opacity-100 cursor-pointer ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
-                            onClick={(e) => handleStartEditName(bl, e)}
-                          />
-                        </span>
-                      )}
-                      <Badge 
-                        variant={status === 'complete' ? 'default' : 'secondary'}
-                        className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
+                    <div className="flex flex-col items-center">
+                      {/* Drop zone above the card */}
+                      <div
+                        className="h-2 w-full"
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, bl.id, bl.atracaoId)}
+                      />
+                      <div
+                        draggable={blList.length > 1}
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, bl.id, bl.atracaoId)}
+                        className={`
+                          group flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
+                          ${isActive 
+                            ? 'bg-primary text-primary-foreground border-primary' 
+                            : 'bg-card hover:bg-muted border-border'
+                          }
+                          ${isDragging ? 'opacity-50 scale-95' : ''}
+                          ${blList.length > 1 ? 'cursor-grab active:cursor-grabbing' : ''}
+                        `}
+                        onClick={() => setActiveIndex(idx)}
+                        title={blList.length > 1 ? "Arraste para reordenar" : ""}
                       >
-                        {status === 'complete' ? '✓' : pendingCount}
-                      </Badge>
-                      
-                      {blList.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveBL(idx);
-                          }}
-                          title="Remover BL"
+                        {/* Drag handle */}
+                        {blList.length > 1 && (
+                          <div className={`flex items-center ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                            <GripVertical className="w-3 h-3" />
+                          </div>
+                        )}
+                        
+                        {/* Nome editável + número sequencial */}
+                        {editingNameId === bl.id ? (
+                          <Input
+                            autoFocus
+                            value={editingNameValue}
+                            onChange={(e) => setEditingNameValue(e.target.value)}
+                            onBlur={handleFinishEditName}
+                            onKeyDown={handleNameKeyDown}
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-6 w-24 text-xs font-medium uppercase px-1 py-0 text-foreground bg-background"
+                            placeholder="Nome"
+                          />
+                        ) : (
+                          <span 
+                            className="font-medium whitespace-nowrap flex items-center gap-1"
+                            onDoubleClick={(e) => handleStartEditName(bl, e)}
+                          >
+                            {bl.name ? `${bl.name}#${bl.blNumber || idx + 1}` : `BL#${bl.blNumber || idx + 1}`}
+                            <Pencil 
+                              className={`w-2.5 h-2.5 opacity-0 group-hover:opacity-100 cursor-pointer ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}
+                              onClick={(e) => handleStartEditName(bl, e)}
+                            />
+                          </span>
+                        )}
+                        <Badge 
+                          variant={status === 'complete' ? 'default' : 'secondary'}
+                          className={`text-xs ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''}`}
                         >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      )}
+                          {status === 'complete' ? '✓' : pendingCount}
+                        </Badge>
+                        
+                        {blList.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-6 w-6 ${isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-destructive/10 hover:text-destructive'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveBL(idx);
+                            }}
+                            title="Remover BL"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     
-                    {/* Indicador de inserção à direita - triângulo */}
+                    {/* Indicador de inserção à direita - triângulo acima (último item) */}
                     {dragOverIndex === idx + 1 && draggedIndex !== null && draggedIndex !== idx + 1 && (
-                      <div className="flex items-center ml-1">
+                      <div className="flex flex-col items-center justify-end mr-[-6px] ml-[-6px] z-10 self-start mt-[-4px]">
                         <div
                           className="w-0 h-0 animate-pulse"
                           style={{
-                            borderTop: '8px solid transparent',
-                            borderBottom: '8px solid transparent',
-                            borderRight: '10px solid hsl(var(--primary))',
+                            borderLeft: '8px solid transparent',
+                            borderRight: '8px solid transparent',
+                            borderTop: '10px solid hsl(var(--primary))',
                           }}
                         />
                       </div>

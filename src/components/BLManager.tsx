@@ -424,8 +424,8 @@ export const BLManager = () => {
           </div>
 
           {/* BL cards com drag and drop e separadores de atracação */}
-          <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2">
+           <ScrollArea className="w-full">
+            <div className="flex gap-2 pb-2" onDragOver={(e) => e.preventDefault()}>
               {blList.map((bl, idx) => {
                 const atr = atracaoList.find(a => a.id === bl.atracaoId);
                 const status = getBLStatus(bl, atr);
@@ -439,9 +439,26 @@ export const BLManager = () => {
                 
                 return (
                   <div key={bl.id} className="flex items-center">
-                    {/* Separador entre atracações */}
+                    {/* Separador entre atracações - com drag handlers para não quebrar o drag */}
                     {needsSeparator && (
-                      <div className="flex items-center mx-3">
+                      <div 
+                        className="flex items-center mx-3"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Ao passar pelo separador, define inserção no idx atual (início do próximo grupo)
+                          if (draggedIndex !== null && draggedIndex !== idx) {
+                            setDragOverIndex(idx);
+                          }
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (draggedIndex !== null && dragOverIndex !== null) {
+                            handleDrop(e, bl.id, bl.atracaoId);
+                          }
+                        }}
+                      >
                         <div className="w-px h-12 bg-border/50" />
                       </div>
                     )}

@@ -207,15 +207,16 @@ export const BLManager = () => {
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', ''); // Para compatibilidade
+    e.dataTransfer.setData('text/plain', String(index));
     
-    // Adiciona uma classe visual ao elemento sendo arrastado
-    const target = e.target as HTMLElement;
-    target.style.opacity = '0.5';
+    const target = e.currentTarget as HTMLElement;
+    requestAnimationFrame(() => {
+      target.style.opacity = '0.4';
+    });
   }, []);
 
   const handleDragEnd = useCallback((e: React.DragEvent) => {
-    const target = e.target as HTMLElement;
+    const target = e.currentTarget as HTMLElement;
     target.style.opacity = '1';
     setDraggedIndex(null);
     setDragOverIndex(null);
@@ -223,31 +224,32 @@ export const BLManager = () => {
 
   const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
     
-    if (draggedIndex !== null && draggedIndex !== index) {
-      // Detecta se está na metade esquerda ou direita do elemento
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const mouseX = e.clientX;
-      const elementCenter = rect.left + rect.width / 2;
-      const isLeftHalf = mouseX < elementCenter;
-      
-      // Define a posição de inserção baseada na metade
-      let insertPosition = index;
-      if (!isLeftHalf) {
-        insertPosition = index + 1;
-      }
-      
-      setDragOverIndex(insertPosition);
-    }
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const mouseX = e.clientX;
+    const elementCenter = rect.left + rect.width / 2;
+    const insertPosition = mouseX < elementCenter ? index : index + 1;
+    
+    // Só atualiza se realmente mudou para evitar re-renders
+    setDragOverIndex(prev => prev === insertPosition ? prev : insertPosition);
   }, [draggedIndex]);
 
-  const handleDragLeave = useCallback(() => {
-    setDragOverIndex(null);
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    // Só limpa se saiu do container pai, não de um filho
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    const currentTarget = e.currentTarget as HTMLElement;
+    if (!currentTarget.contains(relatedTarget)) {
+      setDragOverIndex(null);
+    }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, targetBlId: string, targetAtracaoId: string) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (draggedIndex === null || dragOverIndex === null) {
       setDraggedIndex(null);
@@ -255,54 +257,39 @@ export const BLManager = () => {
       return;
     }
 
-    const draggedItem = blList[draggedIndex];
-    
-    if (dragOverIndex === draggedIndex) {
+    if (dragOverIndex === draggedIndex || dragOverIndex === draggedIndex + 1) {
+      // Não mudou de posição efetivamente
       setDraggedIndex(null);
       setDragOverIndex(null);
       return;
     }
 
-    // Cria nova lista
     const newList = [...blList];
-    
-    // Remove o item da posição original
     const [movedItem] = newList.splice(draggedIndex, 1);
     
-    // Calcula a posição de inserção correta baseada no dragOverIndex
-    let insertIndex = dragOverIndex;
-    if (draggedIndex < dragOverIndex) {
-      // Se estamos movendo para a direita, ajusta o índice porque removemos um item antes
-      insertIndex = dragOverIndex - 1;
+    // Ajusta índice de inserção após remoção
+    let insertIndex = dragOverIndex > draggedIndex ? dragOverIndex - 1 : dragOverIndex;
+    
+    // Garante que está dentro dos limites
+    insertIndex = Math.max(0, Math.min(insertIndex, newList.length));
+    
+    // Determina a atracação baseada nos vizinhos
+    if (insertIndex > 0 && insertIndex <= newList.length) {
+      movedItem.atracaoId = newList[Math.min(insertIndex, newList.length) - 1].atracaoId;
+    } else if (newList.length > 0) {
+      movedItem.atracaoId = newList[0].atracaoId;
     }
     
-    // Determina a atracação baseada na posição de inserção
-    let newAtracaoId = targetAtracaoId;
-    if (insertIndex > 0 && insertIndex < newList.length) {
-      // Usa a atracação do BL anterior na nova posição
-      newAtracaoId = newList[insertIndex - 1].atracaoId;
-    } else if (insertIndex === 0 && newList.length > 0) {
-      // Se inserindo no início, usa a atracação do primeiro BL
-      newAtracaoId = newList[0].atracaoId;
-    } else if (insertIndex >= newList.length && newList.length > 0) {
-      // Se inserindo no final, usa a atracação do último BL
-      newAtracaoId = newList[newList.length - 1].atracaoId;
-    }
-    
-    // Atualiza a atracação do item movido
-    movedItem.atracaoId = newAtracaoId;
-    
-    // Insere na nova posição
     newList.splice(insertIndex, 0, movedItem);
     
-    // Renumera todos os BLs
+    // Renumera
     newList.forEach((bl, idx) => {
       bl.blNumber = String(idx + 1);
     });
     
     setBlList(newList);
     
-    // Ajusta o índice ativo
+    // Ajusta índice ativo
     if (activeIndex === draggedIndex) {
       setActiveIndex(insertIndex);
     } else if (activeIndex > draggedIndex && activeIndex <= insertIndex) {
@@ -425,7 +412,7 @@ export const BLManager = () => {
 
           {/* BL cards com drag and drop e separadores de atracação */}
            <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2" onDragOver={(e) => e.preventDefault()}>
+            <div className="flex gap-2 pb-2" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e)}>
               {blList.map((bl, idx) => {
                 const atr = atracaoList.find(a => a.id === bl.atracaoId);
                 const status = getBLStatus(bl, atr);
@@ -455,7 +442,7 @@ export const BLManager = () => {
                           e.preventDefault();
                           e.stopPropagation();
                           if (draggedIndex !== null && dragOverIndex !== null) {
-                            handleDrop(e, bl.id, bl.atracaoId);
+                            handleDrop(e);
                           }
                         }}
                       >
@@ -483,7 +470,7 @@ export const BLManager = () => {
                       onDragEnd={handleDragEnd}
                       onDragOver={(e) => handleDragOver(e, idx)}
                       onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, bl.id, bl.atracaoId)}
+                      onDrop={(e) => handleDrop(e)}
                       className={`
                         group flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all
                         ${isActive 

@@ -88,28 +88,36 @@ export function GrainReciboManager() {
 
     const recibos: GrainReciboData[] = [];
     grouped.forEach((value, shipper) => {
-      // Soma as quantidades como strings para preservar TODOS os decimais
-      let totalQuantity = 0;
-      let maxDecimals = 0;
-      
-      // Primeiro, soma e descobre quantas casas decimais tem
-      value.quantities.forEach(qtyStr => {
+      // Limpa cada quantidade para formato numérico padrão (com ponto decimal)
+      const cleanedQuantities = value.quantities.map(qtyStr => {
         let cleanStr = qtyStr.trim();
-        // Se tem ponto E vírgula, vírgula é separador de milhar → remove
-        // Se tem só vírgula, trata como separador decimal → troca por ponto
         if (cleanStr.includes('.') && cleanStr.includes(',')) {
           cleanStr = cleanStr.replace(/,/g, '');
         } else if (cleanStr.includes(',')) {
           cleanStr = cleanStr.replace(',', '.');
         }
-        const decimals = cleanStr.includes('.') ? cleanStr.split('.')[1].length : 0;
-        maxDecimals = Math.max(maxDecimals, decimals);
-        totalQuantity += parseFloat(cleanStr) || 0;
+        return cleanStr;
       });
       
-      // Usa toFixed com o número exato de casas decimais necessárias (mínimo 3)
-      const decimalPlaces = Math.max(maxDecimals, 3);
-      const quantityStr = totalQuantity.toFixed(decimalPlaces);
+      let quantityStr: string;
+      
+      if (cleanedQuantities.length === 1) {
+        // Entrada única: preserva exatamente como digitado (sem parseFloat)
+        quantityStr = cleanedQuantities[0];
+      } else {
+        // Múltiplas entradas: soma preservando o máximo de casas decimais
+        let maxDecimals = 0;
+        let total = 0;
+        cleanedQuantities.forEach(cs => {
+          const decimals = cs.includes('.') ? cs.split('.')[1].length : 0;
+          maxDecimals = Math.max(maxDecimals, decimals);
+          total += parseFloat(cs) || 0;
+        });
+        // Multiplica/divide para evitar arredondamento de ponto flutuante
+        const factor = Math.pow(10, maxDecimals);
+        const preciseTotal = Math.round(total * factor) / factor;
+        quantityStr = preciseTotal.toFixed(maxDecimals);
+      }
       
       recibos.push({
         shipper,

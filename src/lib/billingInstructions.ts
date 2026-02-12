@@ -80,7 +80,8 @@ export const BILLING_INSTRUCTIONS: BillingInstruction[] = [
     overrideCompanyName: 'JRD ASSESSORIA ADUANEIRA E TRANSPORTES LTDA',
   },
   {
-    shipper: 'COFCO',
+    shipper: 'COFCO INTERNATIONAL BRASIL S.A.',
+    aliases: ['COFCO INTERNATIONAL BRASIL'],
     remarks: 'Faturar JRD ASSESSORIA ADUANEIRA E TRANSPORTES LTDA - 19.562.559/0001-33',
     overrideCNPJ: '19.562.559/0001-33',
     overrideCompanyName: 'JRD ASSESSORIA ADUANEIRA E TRANSPORTES LTDA',

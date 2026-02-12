@@ -174,9 +174,13 @@ export function SugarManager() {
   }, []);
 
   const getDespachanteEmails = useCallback(() => {
-    if (!processedData) return '';
+    // Coleta brokers de processedData E de sugarRecibos para não perder brokers de shippers com skipBilling
+    const brokersFromProcessed = processedData ? processedData.map(row => row['Customs Broker']).filter(Boolean) : [];
+    const brokersFromRecibos = sugarRecibos.map(r => r.customsBroker).filter(Boolean);
+    const uniqueBrokers = [...new Set([...brokersFromProcessed, ...brokersFromRecibos])];
     
-    const uniqueBrokers = [...new Set(processedData.map(row => row['Customs Broker']).filter(Boolean))];
+    if (uniqueBrokers.length === 0) return '';
+    
     const emailsMap = new Map<string, string>();
     
     uniqueBrokers.forEach(broker => {
@@ -191,7 +195,7 @@ export function SugarManager() {
     return Array.from(emailsMap.entries())
       .map(([broker, email]) => `${broker}: ${email}`)
       .join('\n\n');
-  }, [processedData]);
+  }, [processedData, sugarRecibos]);
 
   const handleReset = useCallback(() => {
     setState('idle');

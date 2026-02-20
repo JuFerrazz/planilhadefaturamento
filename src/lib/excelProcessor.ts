@@ -220,10 +220,10 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   }
   
   // HTML format (table for Excel/Outlook with borders)
-  const cellStyle = 'border: 1px solid #000; padding: 4px 8px;';
+  const cellStyle = 'border: 1px solid #000; padding: 4px 8px; font-family: Arial, sans-serif; font-size: 8pt;';
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
-  const titleStyle = 'font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; margin-bottom: 10px;';
-  const warningStyle = 'background-color: #FFCDD2; color: #C62828;';
+  const titleStyle = 'font-family: Arial, sans-serif; font-size: 8pt; font-weight: bold; margin-bottom: 10px;';
+  const warningStyle = 'background-color: #FFCDD2; color: #C62828; font-family: Arial, sans-serif; font-size: 8pt;';
   // Estilos para CNPJ alterado (negrito + vermelho)
   const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';
   // Estilos para linha destacada (fonte vermelha ao invés de fundo amarelo)
@@ -275,7 +275,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   }).join('');
   
   // Linha de totais
-  const totalRowStyle = 'background-color: #D9EAD3; font-weight: bold;';
+  const totalRowStyle = 'background-color: #D9EAD3; font-weight: bold; font-family: Arial, sans-serif; font-size: 8pt;';
   const htmlTotalRow = `<tr>
     <td style="${cellStyle} ${totalRowStyle}"></td>
     <td style="${cellStyle} ${totalRowStyle}">TOTAL</td>

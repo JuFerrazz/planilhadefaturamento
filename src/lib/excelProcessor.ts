@@ -222,7 +222,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   // HTML format (table for Excel/Outlook with borders)
   const cellStyle = 'border: 1px solid #000; padding: 4px 8px;';
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
-  const titleStyle = 'font-family: Arial, sans-serif; font-size: 14pt; font-weight: bold; margin-bottom: 10px;';
+  const titleStyle = 'font-family: Arial, sans-serif; font-size: 10pt; font-weight: bold; margin-bottom: 10px;';
   const warningStyle = 'background-color: #FFCDD2; color: #C62828;';
   // Estilos para CNPJ alterado (negrito + vermelho)
   const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';
@@ -288,7 +288,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   </tr>`;
   
   const titleHtml = shipName ? `<p style="${titleStyle}">For BL invoicing '${shipName}'</p>` : '';
-  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}${htmlTotalRow}</tbody></table>`;
+  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 8pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}${htmlTotalRow}</tbody></table>`;
   
   // Add skipped items warning
   if (skippedData.length > 0) {

@@ -220,10 +220,10 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   }
   
   // HTML format (table for Excel/Outlook with borders)
-  const cellStyle = 'border: 1px solid #000; padding: 2px 4px; font-family: Arial, sans-serif; font-size: 7pt;';
+  const cellStyle = 'border: 1px solid #000; padding: 2px 4px; font-family: Arial, sans-serif; font-size: 9px; mso-font-size: 9px;';
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
-  const titleStyle = 'font-family: Arial, sans-serif; font-size: 7pt; font-weight: bold; margin-bottom: 6px;';
-  const warningStyle = 'background-color: #FFCDD2; color: #C62828; font-family: Arial, sans-serif; font-size: 8pt;';
+  const titleStyle = 'font-family: Arial, sans-serif; font-size: 9px; mso-font-size: 9px; font-weight: bold; margin-bottom: 6px;';
+  const warningStyle = 'background-color: #FFCDD2; color: #C62828; font-family: Arial, sans-serif; font-size: 9px;';
   // Estilos para CNPJ alterado (negrito + vermelho)
   const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';
   // Estilos para linha destacada (fonte vermelha ao invés de fundo amarelo)
@@ -275,7 +275,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   }).join('');
   
   // Linha de totais
-  const totalRowStyle = 'background-color: #D9EAD3; font-weight: bold; font-family: Arial, sans-serif; font-size: 8pt;';
+  const totalRowStyle = 'background-color: #D9EAD3; font-weight: bold; font-family: Arial, sans-serif; font-size: 9px;';
   const htmlTotalRow = `<tr>
     <td style="${cellStyle} ${totalRowStyle}"></td>
     <td style="${cellStyle} ${totalRowStyle}">TOTAL</td>
@@ -288,7 +288,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   </tr>`;
   
   const titleHtml = shipName ? `<p style="${titleStyle}">For BL invoicing '${shipName}'</p>` : '';
-  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 8pt;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}${htmlTotalRow}</tbody></table>`;
+  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 9px; mso-font-size: 9px;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}${htmlTotalRow}</tbody></table>`;
   
   // Add skipped items warning
   if (skippedData.length > 0) {

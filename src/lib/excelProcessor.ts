@@ -220,9 +220,9 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
   }
   
   // HTML format (table for Excel/Outlook with borders)
-  const cellStyle = 'border: 1px solid #000; padding: 4px 8px; font-family: Arial, sans-serif; font-size: 8pt;';
+  const cellStyle = 'border: 1px solid #000; padding: 2px 4px; font-family: Arial, sans-serif; font-size: 7pt;';
   const headerStyle = `${cellStyle} background-color: #92D050; font-weight: bold;`;
-  const titleStyle = 'font-family: Arial, sans-serif; font-size: 8pt; font-weight: bold; margin-bottom: 10px;';
+  const titleStyle = 'font-family: Arial, sans-serif; font-size: 7pt; font-weight: bold; margin-bottom: 6px;';
   const warningStyle = 'background-color: #FFCDD2; color: #C62828; font-family: Arial, sans-serif; font-size: 8pt;';
   // Estilos para CNPJ alterado (negrito + vermelho)
   const cnpjAlteradoStyle = 'font-weight: bold; color: #C62828;';

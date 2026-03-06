@@ -162,7 +162,7 @@ export function findBillingInstruction(shipperName: string): BillingInstruction 
       email: 'exportacao.granel@raxbrasil.com.br',
       remarks: 'Faturar sempre para RAX BRASIL ASSESSORIA EM COMERCIO EXTERIOR LTDA - 17.343.028/0001-24',
       overrideCNPJ: '17.343.028/0001-24',
-      overrideCompanyName: 'RAX BRASIL ASSESSORIA EM COMERCIO EXTERIOR LTDA',
+      overrideCompanyName: 'RAX BRASIL - ASSESSORIA EM COMÉRCIO EXTERIOR LTDA (Raizen)',
     };
   }
   

@@ -148,7 +148,7 @@ export function processPastedData(text: string): ProcessingResult {
 
         return {
           'BL nbr': group.blNumbers.join('/'),
-          'Name of shipper': billingInfo.companyName || group.shipper,
+          'Name of shipper': billingInfo.companyName ? `${billingInfo.companyName} (${group.shipper})` : group.shipper,
           'CNPJ/VAT': billingInfo.cnpj,
           'Qtd BLs': qtdBLs, // Quantidade real de BLs
           'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,
@@ -387,7 +387,7 @@ export function processExcelFile(file: File): Promise<ProcessingResult> {
 
             return {
               'BL nbr': group.blNumbers.join('/'),
-              'Name of shipper': billingInfo.companyName || group.shipper,
+              'Name of shipper': billingInfo.companyName ? `${billingInfo.companyName} (${group.shipper})` : group.shipper,
               'CNPJ/VAT': billingInfo.cnpj,
               'Qtd BLs': qtdBLs, // Quantidade real de BLs
               'Valor unitário': `R$ ${VALOR_UNITARIO.toFixed(2).replace('.', ',')}`,

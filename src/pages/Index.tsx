@@ -8,112 +8,74 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'sugar' | 'grain' | 'bl' | 'interleave'>('sugar');
+  const [activeLeftTab, setActiveLeftTab] = useState<'sugar' | 'grain' | 'interleave'>('sugar');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Header */}
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 print:hidden">
         <div className="container py-4 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
-            {activeTab === 'sugar' && <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />}
-            {activeTab === 'grain' && <Package className="w-5 h-5 text-primary-foreground" />}
-            {activeTab === 'bl' && <FileText className="w-5 h-5 text-primary-foreground" />}
-            {activeTab === 'interleave' && <Printer className="w-5 h-5 text-primary-foreground" />}
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
+            <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-bold text-lg">
-              {activeTab === 'sugar' && 'Açúcar - Faturamento & Recibos'}
-              {activeTab === 'grain' && 'Grãos - Recibos'}
-              {activeTab === 'bl' && 'BL Alfândega'}
-              {activeTab === 'interleave' && 'Intercalar BLs'}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {activeTab === 'sugar' && 'Planilha de faturamento e recibos de BLs de açúcar'}
-              {activeTab === 'grain' && 'Recibos de grãos (SBS/SBM/CORN)'}
-              {activeTab === 'bl' && 'Gerador de Bill of Lading CONGENBILL'}
-              {activeTab === 'interleave' && 'Intercalar frente e verso dos BLs para impressão'}
-            </p>
+            <h1 className="font-bold text-lg">Rochamar - Ferramentas</h1>
+            <p className="text-xs text-muted-foreground">Faturamento, recibos e BLs</p>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container py-8 md:py-12 print:py-0 print:px-0 print:max-w-none print:w-full">
-        {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 print:hidden">
-            <TabsTrigger value="sugar" className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4" />
-              Açúcar
-            </TabsTrigger>
-            <TabsTrigger value="grain" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Grãos
-            </TabsTrigger>
-            <TabsTrigger value="bl" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              BL
-            </TabsTrigger>
-            <TabsTrigger value="interleave" className="flex items-center gap-2">
-              <Printer className="w-4 h-4" />
-              Intercalar
-            </TabsTrigger>
-          </TabsList>
+      <main className="container py-8 md:py-10 print:py-0 print:px-0 print:max-w-none print:w-full">
+        <div className="flex gap-6 print:block">
 
-          <TabsContent value="sugar" className="space-y-8">
-            {/* Hero Section */}
-            <section className="text-center animate-fade-in print:hidden">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Açúcar - Faturamento & Recibos
-              </h2>
-              <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto">
-                Cole os dados uma vez e gere a planilha de faturamento e os recibos automaticamente.
-              </p>
-            </section>
+          {/* Left panel — Açúcar, Grãos, Emissão */}
+          <div className="flex-1 min-w-0 print:hidden">
+            <Tabs value={activeLeftTab} onValueChange={(v) => setActiveLeftTab(v as typeof activeLeftTab)} className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="sugar" className="flex items-center gap-2">
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Açúcar
+                </TabsTrigger>
+                <TabsTrigger value="grain" className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Grãos
+                </TabsTrigger>
+                <TabsTrigger value="interleave" className="flex items-center gap-2">
+                  <Printer className="w-4 h-4" />
+                  Emissão
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Sugar Manager */}
-            <section>
-              <SugarManager />
-            </section>
-          </TabsContent>
+              <TabsContent value="sugar">
+                <SugarManager />
+              </TabsContent>
 
-          <TabsContent value="grain" className="space-y-8">
-            {/* Hero Section */}
-            <section className="text-center animate-fade-in print:hidden">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Grãos - Recibos
-              </h2>
-              <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto">
-                Entrada manual de dados para gerar recibos de SBS, SBM e CORN.
-              </p>
-            </section>
+              <TabsContent value="grain">
+                <GrainReciboManager />
+              </TabsContent>
 
-            {/* Grain Recibo Manager */}
-            <section>
-              <GrainReciboManager />
-            </section>
-          </TabsContent>
+              <TabsContent value="interleave">
+                <BLInterleaveManager />
+              </TabsContent>
+            </Tabs>
+          </div>
 
-          <TabsContent value="bl" className="space-y-8">
-            {/* Hero Section */}
-            <section className="text-center animate-fade-in print:hidden">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Bill of Lading - CONGENBILL
-                  </h2>
-            </section>
+          {/* Divider */}
+          <div className="w-px bg-border/60 self-stretch print:hidden" />
 
-            {/* BL Manager */}
-            <section>
-              <BLManager />
-            </section>
-          </TabsContent>
+          {/* Right panel — BL */}
+          <div className="w-[55%] shrink-0 print:w-full">
+            <div className="flex items-center gap-2 mb-4 print:hidden">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-primary" />
+              </div>
+              <span className="font-semibold text-sm">BL Alfândega</span>
+            </div>
+            <BLManager />
+          </div>
 
-          <TabsContent value="interleave" className="space-y-8">
-            <section>
-              <BLInterleaveManager />
-            </section>
-          </TabsContent>
-        </Tabs>
+        </div>
       </main>
     </div>
   );

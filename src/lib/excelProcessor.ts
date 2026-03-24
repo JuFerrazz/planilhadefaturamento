@@ -240,7 +240,7 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
     return acc + parseFloat(valorStr);
   }, 0);
   
-  const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}">${h}</th>`).join('');
+  const htmlHeaderRow = headers.map(h => `<th style="${headerStyle}"><font size="1">${h}</font></th>`).join('');
   const htmlDataRows = billableData.map((row, idx) => {
     const rowBg = idx % 2 === 0 ? 'background-color: #fff;' : 'background-color: #f9f9f9;';
     // Se deve destacar, aplica fonte vermelha em toda a linha
@@ -252,43 +252,54 @@ export function generateClipboardData(data: OutputRow[], shipName?: string): { t
       
       // Se é coluna CNPJ e foi alterado, aplica estilo vermelho/negrito
       if (h === 'CNPJ/VAT' && row['_cnpjAlterado']) {
-        return `<td style="${cellStyle} ${rowBg} ${cnpjAlteradoStyle}">${displayVal}</td>`;
+        return `<td style="${cellStyle} ${rowBg} ${cnpjAlteradoStyle}"><font size="1">${displayVal}</font></td>`;
       }
       
       // Se é coluna Name of shipper e deve ser vermelho (preencher formulário)
       if (h === 'Name of shipper' && row['_shipperVermelho']) {
-        return `<td style="${cellStyle} ${rowBg} ${shipperVermelhoStyle}">${displayVal}</td>`;
+        return `<td style="${cellStyle} ${rowBg} ${shipperVermelhoStyle}"><font size="1">${displayVal}</font></td>`;
       }
       
       // Se é coluna Valor total e valor zerado (não paga BL fee)
       if (h === 'Valor total' && row['_valorZerado']) {
-        return `<td style="${cellStyle} ${rowBg} ${valorZeradoStyle}">${displayVal}</td>`;
+        return `<td style="${cellStyle} ${rowBg} ${valorZeradoStyle}"><font size="1">${displayVal}</font></td>`;
       }
       
       // Se linha destacada, aplica fonte vermelha
       if (rowTextStyle) {
-        return `<td style="${cellStyle} ${rowBg} ${rowTextStyle}">${displayVal}</td>`;
+        return `<td style="${cellStyle} ${rowBg} ${rowTextStyle}"><font size="1">${displayVal}</font></td>`;
       }
       
-      return `<td style="${cellStyle} ${rowBg}">${displayVal}</td>`;
+      return `<td style="${cellStyle} ${rowBg}"><font size="1">${displayVal}</font></td>`;
     }).join('')}</tr>`;
   }).join('');
   
   // Linha de totais
   const totalRowStyle = 'background-color: #D9EAD3; font-weight: bold; font-family: Arial, sans-serif; font-size: 9px;';
   const htmlTotalRow = `<tr>
-    <td style="${cellStyle} ${totalRowStyle}"></td>
-    <td style="${cellStyle} ${totalRowStyle}">TOTAL</td>
-    <td style="${cellStyle} ${totalRowStyle}"></td>
-    <td style="${cellStyle} ${totalRowStyle}">${totalBLs}</td>
-    <td style="${cellStyle} ${totalRowStyle}"></td>
-    <td style="${cellStyle} ${totalRowStyle}">R$ ${totalValor.toFixed(2).replace('.', ',')}</td>
-    <td style="${cellStyle} ${totalRowStyle}"></td>
-    <td style="${cellStyle} ${totalRowStyle}"></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1"></font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1">TOTAL</font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1"></font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1">${totalBLs}</font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1"></font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1">R$ ${totalValor.toFixed(2).replace('.', ',')}</font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1"></font></td>
+    <td style="${cellStyle} ${totalRowStyle}"><font size="1"></font></td>
   </tr>`;
   
   const titleHtml = shipName ? `<p style="${titleStyle}">For BL invoicing '${shipName}'</p>` : '';
-  let html = `${titleHtml}<table style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 9px; mso-font-size: 9px;"><thead><tr>${htmlHeaderRow}</tr></thead><tbody>${htmlDataRows}${htmlTotalRow}</tbody></table>`;
+  let html = `
+    <style>
+      table { border-collapse: collapse; font-family: Arial, sans-serif; font-size: 8pt; mso-font-size: 8pt; }
+      td, th { border: 1px solid #000; padding: 4px 8px; font-family: Arial, sans-serif; font-size: 8pt; mso-font-size: 8pt; }
+      th { background-color: #92D050; font-weight: bold; }
+    </style>
+    ${titleHtml}
+    <table>
+      <thead><tr>${htmlHeaderRow}</tr></thead>
+      <tbody>${htmlDataRows}${htmlTotalRow}</tbody>
+    </table>
+  `;
   
   // Add skipped items warning
   if (skippedData.length > 0) {

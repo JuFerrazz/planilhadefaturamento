@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { FileSpreadsheet, FileText, Package } from 'lucide-react';
+import { FileSpreadsheet, FileText, Package, Printer } from 'lucide-react';
 import { SugarManager } from '@/components/SugarManager';
 import { GrainReciboManager } from '@/components/GrainReciboManager';
 import { BLManager } from '@/components/BLManager';
+import { BLInterleaveManager } from '@/components/BLInterleaveManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<'sugar' | 'grain' | 'bl'>('sugar');
+  const [activeTab, setActiveTab] = useState<'sugar' | 'grain' | 'bl' | 'interleave'>('sugar');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">

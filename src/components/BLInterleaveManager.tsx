@@ -84,29 +84,14 @@ export const BLInterleaveManager = () => {
 
       const mergedBytes = await mergedDoc.save();
       const blob = new Blob([mergedBytes as unknown as ArrayBuffer], { type: 'application/pdf' });
+      
+      // Revoke previous URL if any
+      if (mergedPdfUrl) URL.revokeObjectURL(mergedPdfUrl);
+      
       const url = URL.createObjectURL(blob);
+      setMergedPdfUrl(url);
 
-      // Use iframe to avoid popup blockers
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      iframe.src = url;
-      document.body.appendChild(iframe);
-      iframe.addEventListener('load', () => {
-        setTimeout(() => {
-          iframe.contentWindow?.print();
-        }, 500);
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-        }, 120000);
-      });
-
-      toast({ title: 'Sucesso', description: 'PDF intercalado enviado para impressão' });
+      toast({ title: 'Sucesso', description: 'PDF intercalado gerado! Clique no link para abrir.' });
     } catch (err) {
       toast({ title: 'Erro', description: 'Erro ao processar os PDFs', variant: 'destructive' });
     } finally {

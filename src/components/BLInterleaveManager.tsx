@@ -142,7 +142,7 @@ export const BLInterleaveManager = () => {
           />
         </div>
 
-        {frontPdf && backPdf && frontPdf.pageCount !== backPdf.pageCount && (
+        {frontPdf && backPdf && backPdf.pageCount !== 1 && frontPdf.pageCount !== backPdf.pageCount && (
           <p className="text-sm text-destructive text-center">
             ⚠️ Frentes ({frontPdf.pageCount} páginas) e Versos ({backPdf.pageCount} páginas) têm quantidades diferentes.
           </p>
@@ -150,7 +150,7 @@ export const BLInterleaveManager = () => {
 
         <Button
           onClick={handlePrint}
-          disabled={!frontPdf || !backPdf || isProcessing || (frontPdf?.pageCount !== backPdf?.pageCount)}
+          disabled={!frontPdf || !backPdf || isProcessing || (backPdf?.pageCount !== 1 && frontPdf?.pageCount !== backPdf?.pageCount)}
           className="w-full"
           size="lg"
         >

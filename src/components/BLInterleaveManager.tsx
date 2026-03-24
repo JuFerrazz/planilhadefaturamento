@@ -97,7 +97,7 @@ export const BLInterleaveManager = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [frontPdf, backPdf, toast]);
+  }, [frontPdf, backPdf, mergedPdfUrl, toast]);
 
   return (
     <Card>

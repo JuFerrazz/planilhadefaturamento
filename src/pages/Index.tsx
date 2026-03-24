@@ -107,6 +107,12 @@ const Index = () => {
               <BLManager />
             </section>
           </TabsContent>
+
+          <TabsContent value="interleave" className="space-y-8">
+            <section>
+              <BLInterleaveManager />
+            </section>
+          </TabsContent>
         </Tabs>
       </main>
     </div>

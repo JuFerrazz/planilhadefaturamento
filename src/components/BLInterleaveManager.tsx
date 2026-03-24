@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { FileText, Upload, Printer, X, CheckCircle } from 'lucide-react';
+import { FileText, Upload, Printer, X, CheckCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';

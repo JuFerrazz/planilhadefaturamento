@@ -40,8 +40,8 @@ const Index = () => {
       {/* Main Content */}
       <main className="container py-8 md:py-12 print:py-0 print:px-0 print:max-w-none print:w-full">
         {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'sugar' | 'grain' | 'bl')} className="space-y-6">
-          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 print:hidden">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="space-y-6">
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 print:hidden">
             <TabsTrigger value="sugar" className="flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4" />
               Açúcar
@@ -53,6 +53,10 @@ const Index = () => {
             <TabsTrigger value="bl" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               BL
+            </TabsTrigger>
+            <TabsTrigger value="interleave" className="flex items-center gap-2">
+              <Printer className="w-4 h-4" />
+              Intercalar
             </TabsTrigger>
           </TabsList>
 

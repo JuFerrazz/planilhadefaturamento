@@ -78,7 +78,7 @@ export const BLInterleaveManager = () => {
       }
 
       const mergedBytes = await mergedDoc.save();
-      const blob = new Blob([mergedBytes.buffer], { type: 'application/pdf' });
+      const blob = new Blob([mergedBytes as unknown as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
       const printWindow = window.open(url);

@@ -18,17 +18,20 @@ const Index = () => {
             {activeTab === 'sugar' && <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />}
             {activeTab === 'grain' && <Package className="w-5 h-5 text-primary-foreground" />}
             {activeTab === 'bl' && <FileText className="w-5 h-5 text-primary-foreground" />}
+            {activeTab === 'interleave' && <Printer className="w-5 h-5 text-primary-foreground" />}
           </div>
           <div>
             <h1 className="font-bold text-lg">
               {activeTab === 'sugar' && 'Açúcar - Faturamento & Recibos'}
               {activeTab === 'grain' && 'Grãos - Recibos'}
               {activeTab === 'bl' && 'BL Alfândega'}
+              {activeTab === 'interleave' && 'Intercalar BLs'}
             </h1>
             <p className="text-xs text-muted-foreground">
               {activeTab === 'sugar' && 'Planilha de faturamento e recibos de BLs de açúcar'}
               {activeTab === 'grain' && 'Recibos de grãos (SBS/SBM/CORN)'}
               {activeTab === 'bl' && 'Gerador de Bill of Lading CONGENBILL'}
+              {activeTab === 'interleave' && 'Intercalar frente e verso dos BLs para impressão'}
             </p>
           </div>
         </div>

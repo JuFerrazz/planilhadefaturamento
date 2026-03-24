@@ -50,7 +50,9 @@ export const BLInterleaveManager = () => {
   const handlePrint = useCallback(async () => {
     if (!frontPdf || !backPdf) return;
 
-    if (frontPdf.pageCount !== backPdf.pageCount) {
+    const isSingleBack = backPdf.pageCount === 1;
+
+    if (!isSingleBack && frontPdf.pageCount !== backPdf.pageCount) {
       toast({
         title: 'Erro',
         description: `Os PDFs têm quantidades diferentes de páginas (Frentes: ${frontPdf.pageCount}, Versos: ${backPdf.pageCount})`,
@@ -69,11 +71,13 @@ export const BLInterleaveManager = () => {
       const backDoc = await PDFDocument.load(backBuffer);
       const mergedDoc = await PDFDocument.create();
 
+      const backPageIndex = isSingleBack ? 0 : -1;
+
       for (let i = 0; i < frontDoc.getPageCount(); i++) {
         const [frontPage] = await mergedDoc.copyPages(frontDoc, [i]);
         mergedDoc.addPage(frontPage);
 
-        const [backPage] = await mergedDoc.copyPages(backDoc, [i]);
+        const [backPage] = await mergedDoc.copyPages(backDoc, [isSingleBack ? backPageIndex : i]);
         mergedDoc.addPage(backPage);
       }
 

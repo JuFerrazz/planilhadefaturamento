@@ -15,6 +15,7 @@ export const BLInterleaveManager = () => {
   const [frontPdf, setFrontPdf] = useState<PdfFile | null>(null);
   const [backPdf, setBackPdf] = useState<PdfFile | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const loadPdf = useCallback(async (file: File): Promise<PdfFile | null> => {

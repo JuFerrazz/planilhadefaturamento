@@ -104,10 +104,10 @@ export const BLInterleaveManager = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Printer className="w-5 h-5" />
-          Emissão de BLs — Frente & Verso
+          Intercalar Frente & Verso dos BLs
         </CardTitle>
         <CardDescription>
-          Faça upload do PDF das frentes e do PDF dos versos. O sistema intercala automaticamente para impressão.
+          Faça upload do PDF das frentes e do PDF dos versos. O sistema intercala automaticamente e envia para impressão.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -135,8 +135,8 @@ export const BLInterleaveManager = () => {
         <Button
           onClick={handlePrint}
           disabled={!frontPdf || !backPdf || isProcessing || (backPdf?.pageCount !== 1 && frontPdf?.pageCount !== backPdf?.pageCount)}
-          className="w-auto"
-          size="default"
+          className="w-full"
+          size="lg"
         >
           {isProcessing ? (
             <>
@@ -156,7 +156,7 @@ export const BLInterleaveManager = () => {
             href={mergedPdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-primary bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+            className="flex items-center justify-center gap-2 w-full rounded-md border border-primary bg-primary/10 px-4 py-3 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             Abrir PDF Intercalado (Ctrl+P para imprimir)

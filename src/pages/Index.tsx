@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { FileSpreadsheet, FileText, Package } from 'lucide-react';
+import { FileSpreadsheet, FileText, Package, Printer } from 'lucide-react';
 import { SugarManager } from '@/components/SugarManager';
 import { GrainReciboManager } from '@/components/GrainReciboManager';
 import { BLManager } from '@/components/BLManager';
+import { BLInterleaveManager } from '@/components/BLInterleaveManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<'sugar' | 'grain' | 'bl'>('sugar');
+  const [activeTab, setActiveTab] = useState<'sugar' | 'grain' | 'bl' | 'interleave'>('sugar');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
@@ -17,17 +18,20 @@ const Index = () => {
             {activeTab === 'sugar' && <FileSpreadsheet className="w-5 h-5 text-primary-foreground" />}
             {activeTab === 'grain' && <Package className="w-5 h-5 text-primary-foreground" />}
             {activeTab === 'bl' && <FileText className="w-5 h-5 text-primary-foreground" />}
+            {activeTab === 'interleave' && <Printer className="w-5 h-5 text-primary-foreground" />}
           </div>
           <div>
             <h1 className="font-bold text-lg">
               {activeTab === 'sugar' && 'Açúcar - Faturamento & Recibos'}
               {activeTab === 'grain' && 'Grãos - Recibos'}
               {activeTab === 'bl' && 'BL Alfândega'}
+              {activeTab === 'interleave' && 'Intercalar BLs'}
             </h1>
             <p className="text-xs text-muted-foreground">
               {activeTab === 'sugar' && 'Planilha de faturamento e recibos de BLs de açúcar'}
               {activeTab === 'grain' && 'Recibos de grãos (SBS/SBM/CORN)'}
               {activeTab === 'bl' && 'Gerador de Bill of Lading CONGENBILL'}
+              {activeTab === 'interleave' && 'Intercalar frente e verso dos BLs para impressão'}
             </p>
           </div>
         </div>
@@ -36,8 +40,8 @@ const Index = () => {
       {/* Main Content */}
       <main className="container py-8 md:py-12 print:py-0 print:px-0 print:max-w-none print:w-full">
         {/* Tab Navigation */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'sugar' | 'grain' | 'bl')} className="space-y-6">
-          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 print:hidden">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="space-y-6">
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 print:hidden">
             <TabsTrigger value="sugar" className="flex items-center gap-2">
               <FileSpreadsheet className="w-4 h-4" />
               Açúcar
@@ -49,6 +53,10 @@ const Index = () => {
             <TabsTrigger value="bl" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               BL
+            </TabsTrigger>
+            <TabsTrigger value="interleave" className="flex items-center gap-2">
+              <Printer className="w-4 h-4" />
+              Intercalar
             </TabsTrigger>
           </TabsList>
 
@@ -97,6 +105,12 @@ const Index = () => {
             {/* BL Manager */}
             <section>
               <BLManager />
+            </section>
+          </TabsContent>
+
+          <TabsContent value="interleave" className="space-y-8">
+            <section>
+              <BLInterleaveManager />
             </section>
           </TabsContent>
         </Tabs>

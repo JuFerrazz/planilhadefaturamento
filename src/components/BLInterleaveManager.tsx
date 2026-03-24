@@ -85,27 +85,25 @@ export const BLInterleaveManager = () => {
       const blob = new Blob([mergedBytes as unknown as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
-      const printWindow = window.open(url);
-      if (printWindow) {
-        printWindow.addEventListener('load', () => {
-          printWindow.print();
-        });
-        // Cleanup after a delay
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      } else {
-        // Fallback: use iframe
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        iframe.addEventListener('load', () => {
+      // Use iframe to avoid popup blockers
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      iframe.addEventListener('load', () => {
+        setTimeout(() => {
           iframe.contentWindow?.print();
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(url);
-          }, 60000);
-        });
-      }
+        }, 500);
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 120000);
+      });
 
       toast({ title: 'Sucesso', description: 'PDF intercalado enviado para impressão' });
     } catch (err) {

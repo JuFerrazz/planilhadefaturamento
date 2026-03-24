@@ -146,10 +146,22 @@ export const BLInterleaveManager = () => {
           ) : (
             <>
               <Printer className="w-4 h-4" />
-              Imprimir BLs Intercalados
+              Gerar PDF Intercalado
             </>
           )}
         </Button>
+
+        {mergedPdfUrl && (
+          <a
+            href={mergedPdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full rounded-md border border-primary bg-primary/10 px-4 py-3 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Abrir PDF Intercalado (Ctrl+P para imprimir)
+          </a>
+        )}
       </CardContent>
     </Card>
   );

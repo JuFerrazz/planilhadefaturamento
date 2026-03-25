@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { FileText, Upload, Printer, X, CheckCircle, ExternalLink } from 'lucide-react';
+import { FileText, Upload, Printer, X, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,14 @@ export const BLInterleaveManager = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const handleReset = useCallback(() => {
+    if (mergedPdfUrl) URL.revokeObjectURL(mergedPdfUrl);
+    setFrontPdf(null);
+    setBackPdf(null);
+    setIsProcessing(false);
+    setMergedPdfUrl(null);
+  }, [mergedPdfUrl]);
 
   const loadPdf = useCallback(async (file: File): Promise<PdfFile | null> => {
     try {

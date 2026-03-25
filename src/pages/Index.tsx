@@ -26,13 +26,13 @@ const Index = () => {
               {activeTab === 'sugar' && 'Açúcar - Faturamento & Recibos'}
               {activeTab === 'grain' && 'Grãos - Recibos'}
               {activeTab === 'bl' && 'BL Alfândega'}
-              {activeTab === 'interleave' && 'Intercalar BLs'}
+              {activeTab === 'interleave' && 'Emissão de BLs'}
             </h1>
             <p className="text-xs text-muted-foreground">
               {activeTab === 'sugar' && 'Planilha de faturamento e recibos de BLs de açúcar'}
               {activeTab === 'grain' && 'Recibos de grãos (SBS/SBM/CORN)'}
               {activeTab === 'bl' && 'Gerador de Bill of Lading CONGENBILL'}
-              {activeTab === 'interleave' && 'Intercalar frente e verso dos BLs para impressão'}
+              {activeTab === 'interleave' && 'Intercalar e emitir BLs para impressão'}
             </p>
           </div>
         </div>
@@ -43,7 +43,7 @@ const Index = () => {
         {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden max-w-3xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="sugar" className="flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4" />
                 Açúcar
@@ -52,17 +52,17 @@ const Index = () => {
                 <Package className="w-4 h-4" />
                 Grãos
               </TabsTrigger>
+              <TabsTrigger value="interleave" className="flex items-center gap-2">
+                <Printer className="w-4 h-4" />
+                Emissão
+              </TabsTrigger>
             </TabsList>
             <Separator orientation="vertical" className="hidden sm:block h-8" />
             <Separator orientation="horizontal" className="block sm:hidden w-16" />
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full sm:w-auto grid-cols-1">
               <TabsTrigger value="bl" className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 BL
-              </TabsTrigger>
-              <TabsTrigger value="interleave" className="flex items-center gap-2">
-                <Printer className="w-4 h-4" />
-                Intercalar
               </TabsTrigger>
             </TabsList>
           </div>

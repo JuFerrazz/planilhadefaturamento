@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileSpreadsheet, FileText, Package, Printer } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { SugarManager } from '@/components/SugarManager';
 import { GrainReciboManager } from '@/components/GrainReciboManager';
 import { BLManager } from '@/components/BLManager';
@@ -41,24 +42,30 @@ const Index = () => {
       <main className="container py-8 md:py-12 print:py-0 print:px-0 print:max-w-none print:w-full">
         {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 print:hidden">
-            <TabsTrigger value="sugar" className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4" />
-              Açúcar
-            </TabsTrigger>
-            <TabsTrigger value="grain" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Grãos
-            </TabsTrigger>
-            <TabsTrigger value="bl" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              BL
-            </TabsTrigger>
-            <TabsTrigger value="interleave" className="flex items-center gap-2">
-              <Printer className="w-4 h-4" />
-              Intercalar
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden max-w-3xl mx-auto">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="sugar" className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4" />
+                Açúcar
+              </TabsTrigger>
+              <TabsTrigger value="grain" className="flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                Grãos
+              </TabsTrigger>
+            </TabsList>
+            <Separator orientation="vertical" className="hidden sm:block h-8" />
+            <Separator orientation="horizontal" className="block sm:hidden w-16" />
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="bl" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                BL
+              </TabsTrigger>
+              <TabsTrigger value="interleave" className="flex items-center gap-2">
+                <Printer className="w-4 h-4" />
+                Intercalar
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="sugar" className="space-y-8">
             {/* Hero Section */}

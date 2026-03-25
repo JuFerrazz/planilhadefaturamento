@@ -109,14 +109,20 @@ export const BLInterleaveManager = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Printer className="w-5 h-5" />
-          Intercalar Frente & Verso dos BLs
-        </CardTitle>
-        <CardDescription>
-          Faça upload do PDF das frentes e do PDF dos versos. O sistema intercala automaticamente e envia para impressão.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div className="space-y-1.5">
+          <CardTitle className="flex items-center gap-2">
+            <Printer className="w-5 h-5" />
+            Emissão de BLs
+          </CardTitle>
+          <CardDescription>
+            Faça upload do PDF das frentes e do PDF dos versos. O sistema intercala automaticamente.
+          </CardDescription>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleReset} className="flex items-center gap-2">
+          <RefreshCw className="w-4 h-4" />
+          Recomeçar
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

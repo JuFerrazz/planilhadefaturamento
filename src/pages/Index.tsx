@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileSpreadsheet, FileText, Package, Printer } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { SugarManager } from '@/components/SugarManager';
 import { GrainReciboManager } from '@/components/GrainReciboManager';
 import { BLManager } from '@/components/BLManager';

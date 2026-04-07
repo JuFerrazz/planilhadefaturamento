@@ -239,11 +239,21 @@ export function GrainReciboManager() {
                 <MapPin className="w-4 h-4" />
                 Porto
               </Label>
-              <Input 
-                value={grainPort} 
-                onChange={(e) => setGrainPort(e.target.value)}
-                placeholder="Porto de embarque"
-              />
+              <Select value={grainPort} onValueChange={setGrainPort}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o porto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SANTOS">SANTOS</SelectItem>
+                  <SelectItem value="BARCARENA">BARCARENA</SelectItem>
+                  <SelectItem value="ITAQUI">ITAQUI</SelectItem>
+                  <SelectItem value="ARATU">ARATU</SelectItem>
+                  <SelectItem value="PARANAGUA">PARANAGUÁ</SelectItem>
+                  <SelectItem value="TUBARÃO">TUBARÃO</SelectItem>
+                  <SelectItem value="SÃO FRANCISCO DO SUL">SÃO FRANCISCO DO SUL</SelectItem>
+                  <SelectItem value="RIO GRANDE DO SUL">RIO GRANDE DO SUL</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

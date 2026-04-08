@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { GrainRecibo } from './GrainRecibo';
 
-type CargoType = 'SBS' | 'SBM' | 'CORN';
+type CargoType = 'SBS' | 'SBM' | 'CORN' | 'OIL';
 
 interface GrainEntry {
   id: number;
@@ -215,6 +215,7 @@ export function GrainReciboManager() {
                   <SelectItem value="SBS">SBS</SelectItem>
                   <SelectItem value="SBM">SBM</SelectItem>
                   <SelectItem value="CORN">CORN</SelectItem>
+                  <SelectItem value="OIL">OIL</SelectItem>
                 </SelectContent>
               </Select>
             </div>

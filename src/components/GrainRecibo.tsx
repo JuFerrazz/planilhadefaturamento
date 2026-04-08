@@ -5,7 +5,7 @@ import rochamarLogo from '@/assets/rochamar-logo.png';
 interface GrainReciboProps {
   date: string;
   vessel: string;
-  cargo: 'SBS' | 'SBM' | 'CORN';
+  cargo: 'SBS' | 'SBM' | 'CORN' | 'OIL';
   port: string;
   shipper: string;
   blNumbers: string[];

@@ -508,12 +508,15 @@ export function SugarManager() {
                       <MapPin className="w-3 h-3" />
                       Porto
                     </Label>
-                    <Input 
-                      value={reciboPort} 
-                      onChange={(e) => setReciboPort(e.target.value)}
-                      placeholder="Porto de embarque"
-                      className="h-9 text-sm"
-                    />
+                    <Select value={reciboPort} onValueChange={setReciboPort}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Selecione o porto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SANTOS">SANTOS</SelectItem>
+                        <SelectItem value="PARANAGUÁ">PARANAGUÁ</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

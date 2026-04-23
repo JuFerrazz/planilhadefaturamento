@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { processExcelFile, generateExcelDownload, processPastedData, generateClipboardData, ProcessingResult, OutputRow } from '@/lib/excelProcessor';
 import { findDespachanteEmail } from '@/lib/despachantesEmails';
 import { parsePastedData, groupByCustomsBroker, SugarEntry } from '@/lib/sugarReciboParser';
@@ -508,12 +509,15 @@ export function SugarManager() {
                       <MapPin className="w-3 h-3" />
                       Porto
                     </Label>
-                    <Input 
-                      value={reciboPort} 
-                      onChange={(e) => setReciboPort(e.target.value)}
-                      placeholder="Porto de embarque"
-                      className="h-9 text-sm"
-                    />
+                    <Select value={reciboPort} onValueChange={setReciboPort}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Selecione o porto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SANTOS">SANTOS</SelectItem>
+                        <SelectItem value="PARANAGUÁ">PARANAGUÁ</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

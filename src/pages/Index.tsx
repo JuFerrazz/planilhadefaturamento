@@ -12,7 +12,7 @@ type MainTab = 'sugar' | 'recibos' | 'bl' | 'interleave';
 type ReciboSubTab = 'grain' | 'tramp' | 'g2';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<MainTab>('sugar');
+  const [activeTab, setActiveTab] = useState<MainTab>('recibos');
   const [reciboSubTab, setReciboSubTab] = useState<ReciboSubTab>('grain');
 
   const headerTitle = (() => {
@@ -64,13 +64,13 @@ const Index = () => {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as MainTab)} className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden max-w-3xl mx-auto">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="sugar" className="flex items-center gap-2">
-                <FileSpreadsheet className="w-4 h-4" />
-                Açúcar
-              </TabsTrigger>
               <TabsTrigger value="recibos" className="flex items-center gap-2">
                 <Receipt className="w-4 h-4" />
                 Recibos
+              </TabsTrigger>
+              <TabsTrigger value="sugar" className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4" />
+                Açúcar
               </TabsTrigger>
               <TabsTrigger value="interleave" className="flex items-center gap-2">
                 <Printer className="w-4 h-4" />

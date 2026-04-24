@@ -18,7 +18,7 @@ const Index = () => {
   const headerTitle = (() => {
     if (activeTab === 'sugar') return 'Açúcar - Faturamento & Recibos';
     if (activeTab === 'recibos') {
-      if (reciboSubTab === 'grain') return 'Recibos';
+      if (reciboSubTab === 'grain') return 'Recibos - Grãos';
       if (reciboSubTab === 'tramp') return 'Recibos - TRAMP';
       return 'Recibos - G2';
     }
@@ -29,7 +29,7 @@ const Index = () => {
   const headerSubtitle = (() => {
     if (activeTab === 'sugar') return 'Planilha de faturamento e recibos de BLs de açúcar';
     if (activeTab === 'recibos') {
-      if (reciboSubTab === 'grain') return 'Recibos de grãos';
+      if (reciboSubTab === 'grain') return 'Recibos de grãos (SBS/SBM/CORN/OIL)';
       if (reciboSubTab === 'tramp') return 'Recibos TRAMP (logo Rochamar)';
       return 'Recibos G2 (logo Sagres)';
     }

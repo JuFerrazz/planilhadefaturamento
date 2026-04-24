@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FileText, Printer, Ship, Calendar, MapPin, Package, Trash2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { FileText, Printer, Ship, Calendar, MapPin, Hash, Trash2, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,9 +21,14 @@ interface TrampReciboData {
   blNumbers: string[];
 }
 
-export function TrampReciboManager() {
+interface TrampReciboManagerProps {
+  variant?: 'tramp' | 'g2';
+}
+
+export function TrampReciboManager({ variant = 'tramp' }: TrampReciboManagerProps) {
+  const label = variant === 'g2' ? 'G2' : 'TRAMP';
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [cargo, setCargo] = useState('');
+  const [voy, setVoy] = useState('');
   const [vessel, setVessel] = useState('');
   const [port, setPort] = useState('');
   const [entries, setEntries] = useState<TrampEntry[]>([
@@ -50,7 +55,7 @@ export function TrampReciboManager() {
 
   const handleProcess = useCallback(() => {
     const valid = entries.filter(e => e.blNumber.trim() && e.shipper.trim());
-    if (valid.length === 0 || !vessel.trim() || !port.trim() || !cargo.trim()) return;
+    if (valid.length === 0 || !vessel.trim() || !port.trim() || !voy.trim()) return;
 
     const grouped = new Map<string, string[]>();
     valid.forEach(e => {
@@ -65,14 +70,14 @@ export function TrampReciboManager() {
     setRecibos(result);
     setShowPreview(true);
     setCurrentIndex(0);
-  }, [entries, vessel, port, cargo]);
+  }, [entries, vessel, port, voy]);
 
   const handlePrintAll = useCallback(() => window.print(), []);
 
   const handleReset = useCallback(() => {
     setRecibos([]);
     setDate(new Date());
-    setCargo('');
+    setVoy('');
     setVessel('');
     setPort('');
     setEntries([{ id: 1, blNumber: '', shipper: '' }]);
@@ -90,7 +95,7 @@ export function TrampReciboManager() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-primary" />
-              Recibo TRAMP/G2
+              Recibo {label}
             </CardTitle>
             {(recibos.length > 0 || vessel) && (
               <Button onClick={handleReset} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
@@ -121,10 +126,10 @@ export function TrampReciboManager() {
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Carga
+                <Hash className="w-4 h-4" />
+                VOY
               </Label>
-              <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Tipo de carga" />
+              <Input value={voy} onChange={(e) => setVoy(e.target.value)} placeholder="Número da viagem (ex: 123)" />
             </div>
           </div>
 
@@ -201,10 +206,11 @@ export function TrampReciboManager() {
                   <TrampRecibo
                     date={date ? format(date, 'dd/MM/yyyy') : ''}
                     vessel={vessel}
-                    cargo={cargo}
+                    voy={voy}
                     port={port}
                     shipper={recibos[currentIndex].shipper}
                     blNumbers={recibos[currentIndex].blNumbers}
+                    variant={variant}
                   />
                 </div>
                 <div className="flex justify-center mt-4">
@@ -226,10 +232,11 @@ export function TrampReciboManager() {
               <TrampRecibo
                 date={date ? format(date, 'dd/MM/yyyy') : ''}
                 vessel={vessel}
-                cargo={cargo}
+                voy={voy}
                 port={port}
                 shipper={recibo.shipper}
                 blNumbers={recibo.blNumbers}
+                variant={variant}
               />
             </div>
           ))}

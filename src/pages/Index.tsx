@@ -18,7 +18,7 @@ const Index = () => {
   const headerTitle = (() => {
     if (activeTab === 'sugar') return 'Açúcar - Faturamento & Recibos';
     if (activeTab === 'recibos') {
-      if (reciboSubTab === 'grain') return 'RECIBOS';
+      if (reciboSubTab === 'grain') return 'Recibos';
       if (reciboSubTab === 'tramp') return 'Recibos - TRAMP';
       return 'Recibos - G2';
     }

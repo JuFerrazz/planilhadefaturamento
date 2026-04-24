@@ -1,22 +1,25 @@
 import { forwardRef } from 'react';
 import rochamarLogo from '@/assets/rochamar-new-logo.jpg';
+import sagresLogo from '@/assets/sagres-logo.png';
 
 interface TrampReciboProps {
   date: string;
   vessel: string;
-  cargo: string;
+  voy: string;
   port: string;
   shipper: string;
   blNumbers: string[];
+  variant?: 'tramp' | 'g2';
 }
 
 export const TrampRecibo = forwardRef<HTMLDivElement, TrampReciboProps>(({
   date,
   vessel,
-  cargo,
+  voy,
   port,
   shipper,
   blNumbers,
+  variant = 'tramp',
 }, ref) => {
   const formatBlNumbers = (numbers: string[]) => {
     if (numbers.length === 1) return numbers[0];
@@ -25,6 +28,12 @@ export const TrampRecibo = forwardRef<HTMLDivElement, TrampReciboProps>(({
     const rest = numbers.slice(0, -1);
     return `${rest.join(', ')} E ${last}`;
   };
+
+  const headerLogo = variant === 'g2' ? sagresLogo : rochamarLogo;
+  const headerAlt = variant === 'g2' ? 'Sagres Agenciamentos Marítimos' : 'Rochamar';
+
+  // VOY -> "V.{number}" displayed in BL line
+  const voyLabel = voy ? `V.${voy}` : '';
 
   return (
     <div
@@ -37,12 +46,12 @@ export const TrampRecibo = forwardRef<HTMLDivElement, TrampReciboProps>(({
       }}
     >
       <div className="flex-1">
-        {/* Header: only Rochamar logo on the left */}
+        {/* Header: logo on the left */}
         <div className="flex justify-between items-start mb-6">
           <img
-            src={rochamarLogo}
-            alt="Rochamar"
-            className="h-12 object-contain"
+            src={headerLogo}
+            alt={headerAlt}
+            className="h-16 object-contain"
           />
           <div className="text-[12pt] font-bold" style={{ fontFamily: 'Arial, sans-serif' }}>
             DATA: {date}
@@ -53,7 +62,7 @@ export const TrampRecibo = forwardRef<HTMLDivElement, TrampReciboProps>(({
 
         <p className="mb-8 text-justify text-[12pt] leading-relaxed">
           Recebi de ROCHAMAR AGÊNCIA MARÍTIMA S.A., 1ª/2ª/3ª vias Originais e 5 cópias não negociáveis,
-          dos Bs/L abaixo relacionados, referente ao <span className="font-bold">MV {vessel} – {cargo}</span>, com embarque no
+          dos Bs/L abaixo relacionados, referente ao <span className="font-bold">MV {vessel} {voyLabel}</span>, com embarque no
           porto de <span className="font-bold">{port}</span>.
         </p>
 
@@ -80,21 +89,13 @@ export const TrampRecibo = forwardRef<HTMLDivElement, TrampReciboProps>(({
             <span className="inline-block border-b border-black w-96"></span>
           </div>
 
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <span>Data: </span>
-              <span className="inline-block border-b border-black w-12"></span>
-              <span>/</span>
-              <span className="inline-block border-b border-black w-12"></span>
-              <span>/</span>
-              <span className="inline-block border-b border-black w-20"></span>
-            </div>
-            <div>
-              <span>Horário: </span>
-              <span className="inline-block border-b border-black w-12"></span>
-              <span>:</span>
-              <span className="inline-block border-b border-black w-12"></span>
-            </div>
+          <div>
+            <span>Data: </span>
+            <span className="inline-block border-b border-black w-12"></span>
+            <span>/</span>
+            <span className="inline-block border-b border-black w-12"></span>
+            <span>/</span>
+            <span className="inline-block border-b border-black w-20"></span>
           </div>
 
           <div>

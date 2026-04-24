@@ -9,7 +9,7 @@ import { BLInterleaveManager } from '@/components/BLInterleaveManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type MainTab = 'sugar' | 'recibos' | 'bl' | 'interleave';
-type ReciboSubTab = 'grain' | 'tramp';
+type ReciboSubTab = 'grain' | 'tramp' | 'g2';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<MainTab>('sugar');
@@ -17,14 +17,22 @@ const Index = () => {
 
   const headerTitle = (() => {
     if (activeTab === 'sugar') return 'Açúcar - Faturamento & Recibos';
-    if (activeTab === 'recibos') return reciboSubTab === 'grain' ? 'Recibos - Grãos' : 'Recibos - TRAMP/G2';
+    if (activeTab === 'recibos') {
+      if (reciboSubTab === 'grain') return 'Recibos - Grãos';
+      if (reciboSubTab === 'tramp') return 'Recibos - TRAMP';
+      return 'Recibos - G2';
+    }
     if (activeTab === 'bl') return 'BL Alfândega';
     return 'Emissão de BLs';
   })();
 
   const headerSubtitle = (() => {
     if (activeTab === 'sugar') return 'Planilha de faturamento e recibos de BLs de açúcar';
-    if (activeTab === 'recibos') return reciboSubTab === 'grain' ? 'Recibos de grãos (SBS/SBM/CORN/OIL)' : 'Recibos TRAMP/G2 (carga e porto livres)';
+    if (activeTab === 'recibos') {
+      if (reciboSubTab === 'grain') return 'Recibos de grãos (SBS/SBM/CORN/OIL)';
+      if (reciboSubTab === 'tramp') return 'Recibos TRAMP (logo Rochamar)';
+      return 'Recibos G2 (logo Sagres)';
+    }
     if (activeTab === 'bl') return 'Gerador de Bill of Lading CONGENBILL';
     return 'Intercalar e emitir BLs para impressão';
   })();
@@ -105,14 +113,18 @@ const Index = () => {
 
             <Tabs value={reciboSubTab} onValueChange={(v) => setReciboSubTab(v as ReciboSubTab)} className="space-y-6">
               <div className="flex justify-center print:hidden">
-                <TabsList className="grid grid-cols-2 w-full max-w-md">
+              <TabsList className="grid grid-cols-3 w-full max-w-md">
                   <TabsTrigger value="grain" className="flex items-center gap-2">
                     <Package className="w-4 h-4" />
                     Grãos
                   </TabsTrigger>
                   <TabsTrigger value="tramp" className="flex items-center gap-2">
                     <FileText className="w-4 h-4" />
-                    TRAMP/G2
+                    TRAMP
+                  </TabsTrigger>
+                  <TabsTrigger value="g2" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    G2
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -121,7 +133,10 @@ const Index = () => {
                 <GrainReciboManager />
               </TabsContent>
               <TabsContent value="tramp">
-                <TrampReciboManager />
+                <TrampReciboManager variant="tramp" />
+              </TabsContent>
+              <TabsContent value="g2">
+                <TrampReciboManager variant="g2" />
               </TabsContent>
             </Tabs>
           </TabsContent>

@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import agriPortLogo from '@/assets/agri-port-logo.png';
-import rochamarLogo from '@/assets/rochamar-logo.png';
+import rochamarLogo from '@/assets/rochamar-new-logo.jpg';
 
 interface GrainReciboProps {
   date: string;

@@ -44,8 +44,8 @@ export const parseDUEPdf = async (file: File): Promise<ParsedDUEData | null> => 
     
     console.log('PDF Text extracted:', fullText.substring(0, 500));
     
-    // Extract DUE - starts with 25BR, remove hyphens
-    const dueMatch = fullText.match(/25BR\d+[-]?\d*/);
+    // Extract DUE - starts with YYBR (any year), remove hyphens
+    const dueMatch = fullText.match(/\d{2}BR\d+[-]?\d*/);
     const duE = dueMatch ? dueMatch[0].replace(/-/g, '') : '';
     
     // Extract CNPJ and company name from Exportadores section

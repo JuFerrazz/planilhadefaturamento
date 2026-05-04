@@ -5,7 +5,7 @@ import rochamarLogo from '@/assets/rochamar-new-logo.jpg';
 interface GrainReciboProps {
   date: string;
   vessel: string;
-  cargo: 'SBS' | 'SBM' | 'CORN' | 'OIL';
+  cargo: 'SBS' | 'SBM' | 'CORN' | 'OIL' | 'WHEAT';
   port: string;
   shipper: string;
   blNumbers: string[];
@@ -15,7 +15,9 @@ interface GrainReciboProps {
 const cargoNames: Record<string, string> = {
   'SBS': 'SBS',
   'SBM': 'SBM',
-  'CORN': 'CORN'
+  'CORN': 'CORN',
+  'OIL': 'OIL',
+  'WHEAT': 'WHEAT'
 };
 
 export const GrainRecibo = forwardRef<HTMLDivElement, GrainReciboProps>(({

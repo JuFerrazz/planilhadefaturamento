@@ -154,14 +154,14 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
             {/* Left: Description */}
             <div style={{ width: '75%', borderRight: '2px solid #000080' }}>
               <div style={{ fontSize: '10px', padding: '4px 6px' }}>Shipper's description of goods</div>
-              <div style={{ padding: '8px 25px', minHeight: '220px' }}>
+              <div style={{ padding: '8px 25px', minHeight: '180px' }}>
                 <div style={{ fontWeight: 'bold' }}>BRAZILIAN {data.cargoType || '[CARGO TYPE]'}{!cargoNeedsPacking ? '' : ''}</div>
                 {cargoNeedsPacking && <div style={{ fontWeight: 'bold' }}>PACKING : IN BULK</div>}
                 <div style={{ height: '20px' }} />
                 <div>DU-E: {data.duE || '[DU-E]'}</div>
                 <div style={{ height: '15px' }} />
                 <div>CE: {data.ce || '[CE]'}</div>
-                <div style={{ height: '120px' }} />
+                <div style={{ height: '80px' }} />
                 <div style={{ fontSize: '11px', fontStyle: 'italic', paddingLeft: '25px' }}>
                   (of which&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on deck at Shipper's risk; the Carriers not
                 </div>
@@ -257,7 +257,7 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
                   <div style={{ fontWeight: 'bold', fontSize: '11px' }}>{issuePlace}, BRAZIL, {issueDateFormatted}</div>
                   <div style={{ borderTop: '1px solid #000080', marginTop: '12px', paddingTop: '6px' }}>
                     <div style={{ fontSize: '10px' }}>Signature</div>
-                    <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '20px', marginBottom: '6px' }} />
+                    <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '60px', marginBottom: '6px' }} />
                     <div style={{ fontWeight: 'bold', fontSize: '11px', fontStyle: 'italic' }}>ROCHAMAR AGENCIA MARITIMA S A</div>
                     <div style={{ height: '6px' }} />
                     <div style={{ fontSize: '11px', fontStyle: 'italic', fontWeight: 'bold' }}>-&nbsp;&nbsp;AS AGENTS ONLY</div>

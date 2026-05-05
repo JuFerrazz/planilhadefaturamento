@@ -243,23 +243,23 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
 
               {/* Bottom sub-sections - 2 columns */}
               <div style={{ display: 'flex' }}>
-                <div style={{ width: '40%', borderRight: '1px solid #000080', padding: '6px' }}>
+                <div style={{ width: '40%', borderRight: '1px solid #000080', padding: '4px 6px' }}>
                   <div style={{ fontSize: '10px' }}>Freight payable at</div>
-                  <div style={{ height: '25px' }} />
-                  <div style={{ borderTop: '1px solid #000080', paddingTop: '6px' }}>
+                  <div style={{ height: '18px' }} />
+                  <div style={{ borderTop: '1px solid #000080', paddingTop: '4px' }}>
                     <div style={{ fontSize: '10px' }}>Number of original Bs/L</div>
-                    <div style={{ height: '12px' }} />
+                    <div style={{ height: '8px' }} />
                     <div style={{ fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>3 ( THREE)</div>
                   </div>
                 </div>
-                <div style={{ width: '60%', padding: '6px' }}>
+                <div style={{ width: '60%', padding: '4px 6px' }}>
                   <div style={{ fontSize: '10px' }}>Place and date of issue <span style={{ fontStyle: 'italic' }}>SHIPPED ON BOARD</span></div>
                   <div style={{ fontWeight: 'bold', fontSize: '11px' }}>{issuePlace}, BRAZIL, {issueDateFormatted}</div>
-                  <div style={{ borderTop: '1px solid #000080', marginTop: '12px', paddingTop: '6px' }}>
+                  <div style={{ borderTop: '1px solid #000080', marginTop: '8px', paddingTop: '4px' }}>
                     <div style={{ fontSize: '10px' }}>Signature</div>
-                    <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '60px', marginBottom: '6px' }} />
+                    <div style={{ borderBottom: '1px solid #000080', width: '90%', marginTop: '52px', marginBottom: '4px' }} />
                     <div style={{ fontWeight: 'bold', fontSize: '11px', fontStyle: 'italic' }}>ROCHAMAR AGENCIA MARITIMA S A</div>
-                    <div style={{ height: '6px' }} />
+                    <div style={{ height: '3px' }} />
                     <div style={{ fontSize: '11px', fontStyle: 'italic', fontWeight: 'bold' }}>-&nbsp;&nbsp;AS AGENTS ONLY</div>
                     <div style={{ fontSize: '11px', fontStyle: 'italic', fontWeight: 'bold' }}>FOR AND ON BEHALF OF THE MASTER</div>
                   </div>

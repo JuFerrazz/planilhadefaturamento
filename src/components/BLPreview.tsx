@@ -45,7 +45,7 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
         style={{ 
           fontFamily: 'Arial, sans-serif', 
           fontSize: '12px', 
-          lineHeight: '1.25',
+          lineHeight: '1.18',
           width: '210mm',
           minHeight: '297mm',
           padding: '10mm',
@@ -68,10 +68,10 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
             {/* Left: Shipper */}
             <div style={{ width: '50%' }}>
               <div style={{ fontSize: '10px', padding: '2px 6px' }}>Shipper</div>
-              <div style={{ padding: '4px 6px', fontWeight: 'bold', minHeight: '40px' }}>
+              <div style={{ padding: '3px 6px', fontWeight: 'bold', minHeight: '34px' }}>
                 {data.shipperName || '[SHIPPER NAME]'}
               </div>
-              <div style={{ padding: '4px 6px', minHeight: '20px' }}>
+              <div style={{ padding: '3px 6px', minHeight: '16px' }}>
                 CNPJ {data.shipperCnpj || '[CNPJ]'}
               </div>
             </div>
@@ -89,13 +89,13 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
               <div style={{ fontWeight: 'bold', fontSize: '12px', padding: '4px 6px' }}>
                 B/L No. {data.blNumber || '1'}
               </div>
-              <div style={{ height: '30px' }} />
+              <div style={{ height: '22px' }} />
               <div style={{ fontSize: '10px', padding: '4px 6px' }}>Reference No.</div>
             </div>
           </div>
 
           {/* COPY NOT NEGOTIABLE */}
-          <div style={{ textAlign: 'right', padding: '6px 20px', fontWeight: 'bold', fontSize: '12px', letterSpacing: '0.15em' }}>
+          <div style={{ textAlign: 'right', padding: '4px 20px', fontWeight: 'bold', fontSize: '12px', letterSpacing: '0.15em' }}>
             C O P Y&nbsp;&nbsp;N O T&nbsp;&nbsp;N E G O T I A B L E
           </div>
 
@@ -107,7 +107,7 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
             <div style={{ fontSize: '10px' }}>Consignee</div>
             <div style={{ height: '20px' }} />
             <div style={{ fontWeight: 'bold' }}>TO ORDER</div>
-            <div style={{ height: '40px' }} />
+            <div style={{ height: '30px' }} />
           </div>
 
           {/* HORIZONTAL LINE - half width */}
@@ -116,7 +116,7 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
           {/* Notify address */}
           <div style={{ padding: '4px 6px' }}>
             <div style={{ fontSize: '10px' }}>Notify address</div>
-            <div style={{ height: '80px' }} />
+            <div style={{ height: '68px' }} />
           </div>
 
           {/* HORIZONTAL LINE - half width */}
@@ -126,13 +126,13 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
           <div style={{ display: 'flex' }}>
             <div style={{ width: '50%', padding: '4px 6px' }}>
               <div style={{ fontSize: '10px' }}>Vessel</div>
-              <div style={{ fontWeight: 'bold' }}>MV {data.vessel || '[VESSEL]'}</div>
-              <div style={{ height: '15px' }} />
+                <div style={{ fontWeight: 'bold' }}>MV {data.vessel || '[VESSEL]'}</div>
+                <div style={{ height: '10px' }} />
             </div>
             <div style={{ width: '50%', padding: '4px 6px' }}>
               <div style={{ fontSize: '10px' }}>Port of loading</div>
-              <div style={{ fontWeight: 'bold' }}>{data.portOfLoading ? `${data.portOfLoading}, BRAZIL` : '[PORT], BRAZIL'}</div>
-              <div style={{ height: '15px' }} />
+                <div style={{ fontWeight: 'bold' }}>{data.portOfLoading ? `${data.portOfLoading}, BRAZIL` : '[PORT], BRAZIL'}</div>
+                <div style={{ height: '10px' }} />
             </div>
           </div>
 
@@ -143,7 +143,7 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
           <div style={{ padding: '4px 6px' }}>
             <div style={{ fontSize: '10px' }}>Port of discharge</div>
             <div style={{ fontWeight: 'bold' }}>{data.portOfDischarge || '[PORT OF DISCHARGE]'}</div>
-            <div style={{ height: '15px' }} />
+            <div style={{ height: '10px' }} />
           </div>
 
           {/* HORIZONTAL LINE - FULL width */}

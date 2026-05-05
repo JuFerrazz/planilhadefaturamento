@@ -205,39 +205,39 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
             {/* Right Side - Contains SHIPPED text and sub-sections */}
             <div style={{ width: '70%' }}>
               {/* SHIPPED text section */}
-              <div style={{ padding: '6px', fontSize: '11px' }}>
+              <div style={{ padding: '4px 6px', fontSize: '10px' }}>
                 <span style={{ fontWeight: 'bold' }}>SHIPPED</span>&nbsp;&nbsp;at&nbsp;&nbsp;the&nbsp;&nbsp;Port&nbsp;&nbsp;of&nbsp;&nbsp;Loading&nbsp;&nbsp;in&nbsp;&nbsp;apparent&nbsp;&nbsp;&nbsp;&nbsp;good
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px', paddingLeft: '50px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px', paddingLeft: '50px' }}>
                 order&nbsp;&nbsp;&nbsp;and&nbsp;&nbsp;&nbsp;condition&nbsp;&nbsp;&nbsp;on&nbsp;&nbsp;board&nbsp;&nbsp;the&nbsp;&nbsp;Vessel
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 for carriage&nbsp;&nbsp;to&nbsp;&nbsp;the&nbsp;&nbsp;Port of Discharge or so near thereto
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 as&nbsp;&nbsp;&nbsp;she&nbsp;&nbsp;may&nbsp;&nbsp;safely&nbsp;&nbsp;get&nbsp;&nbsp;&nbsp;the&nbsp;&nbsp;&nbsp;goods&nbsp;&nbsp;specified&nbsp;&nbsp;above.
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 Weight,&nbsp;&nbsp;measure,&nbsp;&nbsp;quality,&nbsp;&nbsp;quantity,&nbsp;&nbsp;condition,&nbsp;&nbsp;contents
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 and value unknown.
               </div>
-              <div style={{ padding: '6px', fontSize: '11px' }}>
+              <div style={{ padding: '4px 6px', fontSize: '10px' }}>
                 <span style={{ fontWeight: 'bold' }}>IN WITNESS</span>&nbsp;&nbsp;whereof the&nbsp;&nbsp;Master&nbsp;&nbsp;or&nbsp;&nbsp;Agent&nbsp;&nbsp;of&nbsp;&nbsp;the&nbsp;&nbsp;said
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 Vessel has signed the number of Bills of Lading indicated
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 below all of this tenor and&nbsp;&nbsp;date,&nbsp;&nbsp;any&nbsp;&nbsp;one&nbsp;&nbsp;of which being
               </div>
-              <div style={{ padding: '0 6px', fontSize: '11px' }}>
+              <div style={{ padding: '0 6px', fontSize: '10px' }}>
                 accomplished the others shall be void.
               </div>
               
               {/* FOR CONDITIONS line */}
-              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '11px', borderTop: '1px solid #000080', borderBottom: '1px solid #000080', padding: '6px', marginTop: '12px' }}>
+              <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '10px', borderTop: '1px solid #000080', borderBottom: '1px solid #000080', padding: '4px 6px', marginTop: '8px' }}>
                 FOR CONDITIONS OF CARRIAGE SEE OVERLEAF
               </div>
 

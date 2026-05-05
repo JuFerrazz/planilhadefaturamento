@@ -150,7 +150,7 @@
 @media print {
   @page {
     size: A4;
-    margin: 8mm;
+    margin: 4mm;
   }
   
   * {
@@ -192,21 +192,27 @@
   }
   
   #bl-document {
-    width: 100vw !important;
+    width: 100% !important;
     max-width: none !important;
-    height: 100vh !important;
+    min-height: 0 !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: white !important;
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
-  
-  /* Remove bordas externas do container principal */
+
+  /* Container interno do BL não pode quebrar entre páginas */
   #bl-document > div {
-    border: none !important;
+    border: 2px solid #000080 !important;
     background: white !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
   
   /* Recibo styles - ocupar folha toda com margens consistentes */

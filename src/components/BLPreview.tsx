@@ -41,11 +41,11 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
       {/* BL Document - Exact replica of CONGENBILL */}
       <div 
         id="bl-document" 
-        className="bg-white text-blue-800 border border-border rounded-lg print:border-0 print:rounded-none print:p-0 print:m-0 print:w-full print:max-w-none print:h-full mx-auto"
+        className="bg-white text-blue-800 border border-border rounded-lg print:border-0 print:rounded-none print:p-0 print:m-0 print:w-full print:max-w-none mx-auto"
         style={{ 
           fontFamily: 'Arial, sans-serif', 
           fontSize: '12px', 
-          lineHeight: '1.3',
+          lineHeight: '1.25',
           width: '210mm',
           minHeight: '297mm',
           padding: '10mm',

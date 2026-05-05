@@ -154,14 +154,14 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
             {/* Left: Description */}
             <div style={{ width: '75%', borderRight: '2px solid #000080' }}>
               <div style={{ fontSize: '10px', padding: '4px 6px' }}>Shipper's description of goods</div>
-              <div style={{ padding: '8px 25px', minHeight: '180px' }}>
+              <div style={{ padding: '6px 25px', minHeight: '165px' }}>
                 <div style={{ fontWeight: 'bold' }}>BRAZILIAN {data.cargoType || '[CARGO TYPE]'}{!cargoNeedsPacking ? '' : ''}</div>
                 {cargoNeedsPacking && <div style={{ fontWeight: 'bold' }}>PACKING : IN BULK</div>}
-                <div style={{ height: '20px' }} />
+                <div style={{ height: '14px' }} />
                 <div>DU-E: {data.duE || '[DU-E]'}</div>
-                <div style={{ height: '15px' }} />
+                <div style={{ height: '10px' }} />
                 <div>CE: {data.ce || '[CE]'}</div>
-                <div style={{ height: '80px' }} />
+                <div style={{ height: '62px' }} />
                 <div style={{ fontSize: '11px', fontStyle: 'italic', paddingLeft: '25px' }}>
                   (of which&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on deck at Shipper's risk; the Carriers not
                 </div>
@@ -186,18 +186,18 @@ export const BLPreview = ({ data, atracacao }: BLPreviewProps) => {
           {/* Bottom Section - 2 main columns */}
           <div style={{ display: 'flex' }}>
             {/* Left Column - Freight info */}
-            <div style={{ width: '30%', borderRight: '2px solid #000080', padding: '6px' }}>
+              <div style={{ width: '30%', borderRight: '2px solid #000080', padding: '4px 6px' }}>
               <div style={{ fontSize: '10px', fontStyle: 'italic' }}>Freight payable as per</div>
               <div style={{ fontStyle: 'italic' }}>CHARTER-PARTY DATED</div>
-              <div style={{ height: '35px' }} />
+                <div style={{ height: '26px' }} />
               <div style={{ fontSize: '10px', fontStyle: 'italic' }}>FREIGHT ADVANCE.</div>
               <div style={{ fontSize: '10px', fontStyle: 'italic' }}>Received on account of freight:</div>
-              <div style={{ height: '25px' }} />
-              <div style={{ borderBottom: '1px solid #000080', width: '90%', marginBottom: '12px' }} />
-              <div style={{ height: '25px' }} />
+                <div style={{ height: '18px' }} />
+                <div style={{ borderBottom: '1px solid #000080', width: '90%', marginBottom: '8px' }} />
+                <div style={{ height: '18px' }} />
               <div style={{ fontSize: '10px', fontStyle: 'italic' }}>Time used for loading............ ....days.... .............hours.</div>
-              <div style={{ height: '25px', borderBottom: '2px solid #000080' }} />
-              <div style={{ padding: '6px 0', fontWeight: 'bold' }}>
+                <div style={{ height: '18px', borderBottom: '2px solid #000080' }} />
+                <div style={{ padding: '4px 0', fontWeight: 'bold' }}>
                 USD {formatCurrency(calculatedValue)}
               </div>
             </div>

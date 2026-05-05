@@ -209,7 +209,7 @@
 
   /* Container interno do BL não pode quebrar entre páginas */
   #bl-document > div {
-    border: 2px solid #000080 !important;
+    border: none !important;
     background: white !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;

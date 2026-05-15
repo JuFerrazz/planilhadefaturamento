@@ -57,15 +57,10 @@ export function TrampReciboManager({ variant = 'tramp' }: TrampReciboManagerProp
     const valid = entries.filter(e => e.blNumber.trim() && e.shipper.trim());
     if (valid.length === 0 || !vessel.trim() || !port.trim() || !voy.trim()) return;
 
-    const grouped = new Map<string, string[]>();
-    valid.forEach(e => {
-      const s = e.shipper.trim().toUpperCase();
-      if (grouped.has(s)) grouped.get(s)!.push(e.blNumber.trim());
-      else grouped.set(s, [e.blNumber.trim()]);
-    });
-
-    const result: TrampReciboData[] = [];
-    grouped.forEach((blNumbers, shipper) => result.push({ shipper, blNumbers }));
+    const result: TrampReciboData[] = valid.map(e => ({
+      shipper: e.shipper.trim().toUpperCase(),
+      blNumbers: [e.blNumber.trim()],
+    }));
 
     setRecibos(result);
     setShowPreview(true);
